@@ -43,12 +43,10 @@ def ensure_table_sql(table: str) -> str:
     )
 
 
-def migrate_table_sql(table: str) -> list[str]:
-    """Statements that bring a table created before these columns existed up to date."""
-    return [
-        f'ALTER TABLE {table} ADD COLUMNS IF NOT EXISTS (proposed_decision STRING)',
-        f'ALTER TABLE {table} ADD COLUMNS IF NOT EXISTS (decision_text STRING)',
-    ]
+def migrate_table_sql(table: str, existing_columns: set[str]) -> list[str]:
+    """ALTERs for a table created before the audit columns existed (no IF NOT EXISTS in Spark)."""
+    wanted = ('proposed_decision', 'decision_text')
+    return [f'ALTER TABLE {table} ADD COLUMNS ({c} STRING)' for c in wanted if c not in existing_columns]
 
 
 class SqlApprovalLog:

@@ -1,0 +1,18 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Users/venkatagiriramesh/Projects/Databricks/databricks-langgraph-multiagent-llmops/scripts/deploy_agent_endpoint.py", line 87, in <module>
+    main()
+    ~~~~^^
+  File "/Users/venkatagiriramesh/Projects/Databricks/databricks-langgraph-multiagent-llmops/scripts/deploy_agent_endpoint.py", line 57, in main
+    run_sql(statement, cfg.warehouse_id)
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/venkatagiriramesh/Projects/Databricks/databricks-langgraph-multiagent-llmops/src/insurance_automation/common/sql.py", line 16, in run_sql
+    raise SQLExecutionError(detail)
+insurance_automation.common.sql.SQLExecutionError: 
+[PARSE_SYNTAX_ERROR] Syntax error at or near 'EXISTS'. SQLSTATE: 42601 (line 1, pos 76)
+
+== SQL ==
+ALTER TABLE insurance_automation.eval.approval_decisions ADD COLUMNS IF NOT EXISTS (proposed_decision STRING)
+----------------------------------------------------------------------------^^^
+

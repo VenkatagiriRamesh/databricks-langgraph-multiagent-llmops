@@ -69,9 +69,15 @@ def test_ensure_table_sql_has_the_two_new_columns():
     assert 'proposed_decision STRING' in sql and 'decision_text STRING' in sql
 
 
-def test_migrate_table_sql_adds_columns_idempotently():
-    stmts = migrate_table_sql('c.ops.approvals')
-    assert stmts and all(s.startswith('ALTER TABLE c.ops.approvals ADD COLUMNS IF NOT EXISTS')
-                         for s in stmts)
-    joined = ' '.join(stmts)
-    assert 'proposed_decision STRING' in joined and 'decision_text STRING' in joined
+def test_migrate_adds_only_the_missing_columns():
+    stmts = migrate_table_sql('c.ops.approvals', existing_columns={'run_id', 'proposed_decision'})
+    assert stmts == ['ALTER TABLE c.ops.approvals ADD COLUMNS (decision_text STRING)']
+
+
+def test_migrate_does_nothing_when_table_is_current():
+    assert migrate_table_sql('t', {'proposed_decision', 'decision_text', 'run_id'}) == []
+
+
+def test_migrate_never_uses_unsupported_if_not_exists_syntax():
+    stmts = migrate_table_sql('t', existing_columns=set())
+    assert len(stmts) == 2 and all('IF NOT EXISTS' not in s for s in stmts)

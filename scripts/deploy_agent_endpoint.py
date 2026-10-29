@@ -53,7 +53,8 @@ def main(argv=None) -> None:
 
     audit_table = f'{cfg.schema("eval")}.approval_decisions'
     run_sql(ensure_table_sql(audit_table), cfg.warehouse_id)
-    for statement in migrate_table_sql(audit_table):  # tables created by earlier versions
+    existing = {r['col_name'] for r in run_sql(f'DESCRIBE TABLE {audit_table}', cfg.warehouse_id)}
+    for statement in migrate_table_sql(audit_table, existing):  # tables from earlier versions
         run_sql(statement, cfg.warehouse_id)
     info = mlflow.pyfunc.log_model(
         name='agent', python_model=ENTRY, code_paths=['src/insurance_automation'],
