@@ -40,7 +40,7 @@ Run from the repository root.
 | 7 | `python -m scripts.build_golden_set` | Writes `eval/golden_set.jsonl` |
 | 8 | `python -m scripts.run_eval --split dev` (and `--split heldout`) | Report at `eval/results/latest_report.json`, metrics in MLflow |
 | 9 | `python -m scripts.gate_release --report eval/results/latest_report.json --model-name <catalog>.models.claims_copilot_agent --model-version <n>` | Gate decision; sets `champion` on pass. Add `--offline` to check without setting an alias |
-| 10 | `python -m scripts.deploy_agent_endpoint --deploy` | Registers the agent as `challenger`, creates a scale-to-zero endpoint. Omit `--deploy` to register only. Query it with `python -m scripts.query_endpoint "<question>"` |
+| 10 | `python -m scripts.deploy_agent_endpoint --deploy` | Registers the agent as `challenger`, creates a scale-to-zero endpoint and runs the DDL for `eval.approval_decisions`. Omit `--deploy` to register only. Query it with `python -m scripts.query_endpoint "<question>"` |
 
 `resources/jobs.yml` defines a job chaining the scripts. The bundle validates (`databricks bundle validate`), but the job has not been run end to end; its `gate_release` task runs in `--offline` mode (decision only, no alias change). Use the local script order above for the verified path.
 
@@ -58,7 +58,7 @@ export DATABRICKS_TOKEN=$(databricks auth token --profile <profile> | python -c 
 ## Quota notes
 
 - Free Edition has daily compute and Foundation Model limits. LLM responses are cached under `.local_cache/llm`, and `run_eval` appends progress to a JSONL file, so a rerun after a quota error resumes without redoing finished items.
-- Evaluation uses repeated runs (`--runs`, default 3) over each split; reduce `--runs` if you hit limits.
+- Evaluation runs each item once (`--runs` defaults to 1). At temperature 0 the response cache replays the first run, so extra runs add nothing.
 - The deploy script refuses if more than one custom serving endpoint exists, unless `--force` is passed.
 
 ## Troubleshooting
@@ -72,5 +72,5 @@ export DATABRICKS_TOKEN=$(databricks auth token --profile <profile> | python -c 
 | Prompt source reports `local` | Registry load failed | Rerun step 5; the graph still works with in-code prompts |
 | `ResolutionTooDeep` on pip | Installing `databricks-agents` with `databricks-langchain` | Do not install `databricks-langchain` |
 | `get_latest_versions` unsupported | UC registry | Use aliases and `search_model_versions` |
-| Masked values where you expect real ones | Not in `admins` or `claims_role` | Expected behaviour for other users |
+| Masked values where you expect real ones | Not in `admins` or `claims_role` | Expected behaviour for other users. This includes the serving endpoint's service principal: to grant it real values, set `AGENT_PRINCIPAL` and run `python -m scripts.apply_masks` (needs owner approval; it exposes PII) |
 | Deploy aborts on endpoint count | Another custom endpoint exists | Delete the stale one, or pass `--force` |

@@ -1,3 +1,5 @@
+> **Historical planning document (written before the build).** Targets, task lists and evaluation designs below are plans, not results; some did not survive contact with the workspace (for example, repeated runs add no information at temperature 0). Current facts and numbers: `README.md`, `docs/EVALUATION.md`, `docs/adr/`.
+
 # Plan: `databricks-langgraph-claims-copilot`
 
 A multi-agent insurance underwriting and claims copilot on Databricks. LangGraph orchestrates the agents, MLflow handles tracing, evaluation, prompts and model lifecycle, and Unity Catalog governs everything.

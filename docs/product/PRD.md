@@ -44,11 +44,11 @@ Targets (from the plan, section 6; these are targets, not results):
 | Governance | PII not in agent output; every approval logged |
 | Judge quality | agreement with human labels reported (kappa); results carry confidence intervals |
 
-Measured results: [see docs/EVALUATION.md].
+Measured results: [see docs/EVALUATION.md] (golden set 86 items, 50 dev and 36 held-out; held-out numbers are one run over applicable items, and judges are uncalibrated).
 
 ## Scope
 
-Now: supervisor graph with SQL analyst, policy RAG (TF-IDF), coverage checker, fraud screener, risk scorer, writer, critic and approval gate; UC tables, masks and functions; registered risk model with fairness audit; prompt registry; custom evaluation harness with judges, confidence intervals and a release gate; one scale-to-zero serving endpoint, deployed and verified on 2026-10-29 (model version 3).
+Now: supervisor graph with SQL analyst, policy RAG (TF-IDF), coverage checker, fraud screener, risk scorer, writer, critic and approval gate; UC tables, masks and functions; registered risk model with fairness audit; prompt registry; custom evaluation harness with judges, confidence intervals and a release gate; one scale-to-zero serving endpoint, deployed and verified on 2026-10-29 (model version 3; review fixes committed, pending redeploy). The endpoint's service principal sees masked PII, so served behaviour differs from the evaluated behaviour until an owner-approved mask exception is applied (see GOVERNANCE.md).
 
 Roadmap (not built): multi-turn simulated users, full red-team set, hybrid retrieval with reranking, model routing, agent memory, feedback flywheel, online scoring.
 
@@ -57,7 +57,8 @@ Roadmap (not built): multi-turn simulated users, full red-team set, hybrid retri
 | Risk | Mitigation |
 |---|---|
 | Synthetic data hides real-world difficulty | State the limit; do not claim real-world accuracy |
-| Seeded fraud labels flatter fraud metrics | Describe them as pipeline checks |
+| Seeded fraud labels and code-derived expected values flatter fraud and authority metrics | Describe them as pass-through checks, not detection |
+| Endpoint identity sees masked PII, so served behaviour differs from evaluation | Documented as a known issue; fix implemented, awaiting owner approval |
 | LLM judges disagree with humans | Calibrate on hand labels and report kappa |
 | Free Edition quotas interrupt evaluation | Cache and resume |
 | Approval role not authenticated, pending runs per process | Documented in GOVERNANCE.md; production would need identity and durable state |

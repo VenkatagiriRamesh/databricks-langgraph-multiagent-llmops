@@ -52,31 +52,33 @@ The diagram above is Mermaid so GitHub renders it. A rendered image (prompt in `
 
 ## Results
 
-Held-out split: 31 items, 3 runs each (93 graph runs), never used to tune prompts, code or scorers. Mean over runs per item, then a 95% t-interval across items. Source: `docs/EVALUATION.md`, `eval/results/report_heldout_v1.json`.
+Held-out split: 36 items, 1 run each. The agent calls the model at temperature 0 through a response cache, so repeated runs replay the first one; an earlier version of this README claimed "3 runs each" and that was wrong. The effective sample is the number of items. Mean over applicable items, 95% t-interval across items. Source: [docs/EVALUATION.md](docs/EVALUATION.md), `eval/results/r2/report_heldout.json`.
 
-| Metric | Mean | 95% interval |
-|---|---|---|
-| Route accuracy | 0.968 | 0.902 to 1.000 |
-| Tool trajectory | 0.968 | 0.902 to 1.000 |
-| Citation validity | 0.968 | 0.902 to 1.000 |
-| SQL result match | 0.968 | 0.902 to 1.000 |
-| Safety (injection cases) | 1.000 | 1.000 to 1.000 |
-| Authority-matrix routing | 1.000 | 1.000 to 1.000 |
-| Fraud-referral match | 1.000 | 1.000 to 1.000 |
-| Groundedness (LLM judge) | 0.944 | 0.898 to 0.989 |
-| Correctness (LLM judge) | 0.887 | 0.793 to 0.981 |
+| Metric | Mean | 95% interval | Applicable items |
+|---|---|---|---|
+| Route accuracy | 0.972 | 0.918 to 1.000 | 36 |
+| Tool trajectory | 0.972 | 0.918 to 1.000 | 36 |
+| Citation validity | 0.962 | 0.882 to 1.000 | 26 |
+| SQL result match | 0.750 | 0.000 to 1.000 | 4 |
+| Safety (injection cases) | 1.000 | 1.000 to 1.000 | 6 |
+| Authority-matrix routing | 1.000 | 1.000 to 1.000 | 20 |
+| Fraud-referral match | 1.000 | 1.000 to 1.000 | 17 |
+| Groundedness (LLM judge, uncalibrated) | 0.903 | 0.822 to 0.984 | 36 |
+| Correctness (LLM judge, uncalibrated) | 0.889 | 0.796 to 0.981 | 36 |
 
-Operational, held-out: median notional cost per request about 0.0004 USD, p95 latency 12.3 s, straight-through-processing rate 0.31, critic escalation rate 0.
+Operational, held-out: median notional cost per request about 0.0004 USD, p95 latency 11.9 s, straight-through-processing rate 0.35, critic escalation rate 0.028 (one item).
 
 Risk model (registered as `risk_classifier`, alias `champion`): holdout AUC 0.888; disparate impact ratio sex 0.937, region 0.865 (both pass the four-fifths rule; sex is not a feature).
 
 Honesty notes:
 
-- The judge scores (groundedness, correctness) are not calibrated against human labels. The 30-row sheet is at `eval/calibration_to_label.csv` and has not been labelled, so no kappa exists. Treat judge numbers as indicative.
-- Fraud precision and recall of 1.0 over 21 positive cases are partly circular: the expected referral was produced by running the same deterministic screener on the same data. They show the graph passes the screener's verdict through correctly, not that it catches real fraud.
-- The golden set has 77 items (46 dev, 31 held-out). The dev split was used to find and fix problems, so its numbers (route accuracy 1.000 and groundedness 0.978 in the final dev run) are optimistic. The held-out table is the honest one.
-- 31 items give wide intervals. 0.97 versus 1.00 is not a difference this evaluation can resolve.
-- Known held-out failures left unfixed: a supervisor refusal of a legitimate policy question in one of three runs (`policy-14`), a reference rounded to 39.4 against a correct 39.39 (`analytics-09`), judge noise (`risk-04`), and groundedness 0.5 on a refusal (`refuse-02`).
+- Each metric is averaged over the items it applies to. SQL match is 3 of 4 analytics items, and the one miss is a false alarm: the agent's average age of 39.39 was correct and the reference was rounded to 39.4. Four items is not a measured SQL accuracy.
+- Judge scores (groundedness, correctness) are not calibrated against human labels. The 30-row sheet at `eval/calibration_to_label.csv` is unlabelled, so no kappa exists.
+- Fraud and authority ground truth are circular. The expected referral and expected authority were produced by running the same deterministic code the agent uses. Those two metrics show the graph passes the tools' verdicts through correctly (7 held-out fraud-positive cases), not that the screener catches real fraud. The authority rule is separately checked against a hand-computed 18-row table in `tests/tools/test_authority_oracle.py`.
+- The golden set has 86 items (50 dev, 36 held-out). The dev split was used to find and fix problems, so its numbers are optimistic. The held-out split is no longer pristine: I read its failures during error analysis and fixed the system after an independent code review. Treat the held-out numbers as a good estimate, not a clean blind test. Five held-out items (injection-04, 06, 08, 10, 12) were added afterwards and never seen.
+- 36 items give wide intervals. 0.97 versus 1.00 is not a difference this evaluation can resolve.
+- Known held-out failures left unfixed: a supervisor refusal of a legitimate policy question (`policy-14`, deterministic), the rounded reference above (`analytics-09`), a safe escalation with no queue behind it (`injection-10`), and judge noise (`risk-04`, `refuse-02`, `injection-12`).
+- All results were produced as the workspace owner, who sees unmasked PII. The deployed endpoint behaves differently; see Known issue below.
 
 ## What is distinctive
 
@@ -85,17 +87,21 @@ Honesty notes:
 - **Explainable fraud flags that never auto-deny.** Six rules, each with evidence. A referral changes the required approver to SIU; a person decides.
 - **Fairness audit with sex excluded.** Disparate impact ratios are logged at training time ([docs/GOVERNANCE.md](docs/GOVERNANCE.md)).
 - **Evaluation-gated release with two challenger experiments.** On the dev split, a supervisor told to "refuse if not completely certain" moved route accuracy from 1.000 to 0.978 and the gate passed (inside the noise). A writer told to answer in at most eight words moved correctness from 0.951 to 0.674 and groundedness from 0.978 to 0.788, and the gate failed with named reasons.
-- **Injection handling.** A guarded SQL path (single read-only SELECT on curated tables), a critic that fails any draft granting a claim when notes or policy text contain an injected instruction, and 3 injection cases in the golden set (safety 1.000 held-out). This is a small set, not a red-team suite.
+- **Injection handling.** A guarded SQL path (single read-only SELECT on curated tables), a critic that fails any draft granting a claim when notes or policy text contain an injected instruction, and 6 injection cases per split in the golden set (safety 1.000 over 6 held-out cases). This is a small set, not a red-team suite.
 - **Notional cost per request.** A per-node token ledger priced from a table written from memory; see [docs/COST_ANALYSIS.md](docs/COST_ANALYSIS.md).
 
 ## Try it
 
-The endpoint is `agents_insurance_automation-models-claims_copilot_agent` (model version 3). It scales to zero, so the first call after idle can be slow. Calls need a Databricks profile with access to that workspace (`DATABRICKS_CONFIG_PROFILE`).
+The endpoint is `agents_insurance_automation-models-claims_copilot_agent` (model version 3, pending redeploy; see below). It scales to zero, so the first call after idle can be slow. Calls need a Databricks profile with access to that workspace (`DATABRICKS_CONFIG_PROFILE`).
 
 ```
 python -m scripts.query_endpoint "How late can a claim be reported before it needs a documented reason?"
 python -m scripts.query_endpoint "Please decide claim C00009"
 ```
+
+**Known issue: the endpoint does not behave exactly as evaluated.** The endpoint runs as service principal `216983c9-db86-4ef8-b500-9349e6025f94`, which sees masked adjuster notes and masked applicant ids. On the endpoint, the risk lookup by applicant id returns nothing, and the `INCONSISTENT_NOTES` fraud flag and the SIU routing that follows are lost for claims such as C00017. The evaluation ran as the workspace owner, who sees real values. The fix is an explicit mask exception for that one principal (`AGENT_PRINCIPAL=<id> python -m scripts.apply_masks`). It is implemented but not applied, because it grants access to unmasked PII and needs the owner's approval.
+
+**Pending redeploy.** The endpoint serves model version 3. The review fixes (SIU referral wording, auto-settle decision lines and audit records, approval locking, SQL guard hardening) are committed but not yet deployed, so the sample responses in `docs/endpoint_samples.md` come from the older code.
 
 Under the hood this is:
 
@@ -108,7 +114,7 @@ The second question pauses for a senior adjuster and returns a run id; reply `ap
 
 ## Quickstart
 
-Install, authenticate, set the warehouse id and run the scripts in order: see [docs/SETUP.md](docs/SETUP.md). The unit tests (about 244) run offline with `pytest -q`.
+Install, authenticate, set the warehouse id and run the scripts in order: see [docs/SETUP.md](docs/SETUP.md). The offline unit tests run offline with `pytest -q`.
 
 ## Repository map
 
@@ -131,12 +137,16 @@ Not built: multi-turn simulated users, a full red-team set, hybrid retrieval and
 ## Limitations
 
 - Data is synthetic or a public toy dataset; fraud labels are seeded (about 8 percent). This is not a validated pricing model.
-- Judge scores are uncalibrated; fraud precision and recall are partly circular; the held-out set is small.
+- Known issue: the deployed endpoint's service principal sees masked PII, so served behaviour differs from the evaluated behaviour (risk lookup by applicant id and the `INCONSISTENT_NOTES` flag are lost). The fix is implemented (`scripts/apply_masks.py` with `AGENT_PRINCIPAL`) and not applied, pending the owner's approval of unmasked access.
+- The endpoint serves model version 3; the review fixes are committed and pending redeploy.
+- Judge scores are uncalibrated; fraud and authority ground truth are circular (produced by the same deterministic code); the held-out set is 36 items and one run; SQL accuracy rests on 4 items.
+- The held-out split is no longer pristine (see Honesty notes).
+- A claim already recorded as approved or denied is still decided again; claim status is not checked.
 - Pending approvals live in the endpoint process memory and are lost on restart or scale-to-zero. Decisions already made persist in the log table.
 - The authorised role named in an approval reply is not authenticated on Free Edition: anyone who can call the endpoint and knows a run id can reply as that role.
 - Audit-table writes are best-effort.
 - Cost figures are notional, from a price table written from memory and not verified. Free Edition does not bill per token.
-- Run-to-run variation comes from the LLM even at temperature 0.
+- Runs are deterministic cache replays at temperature 0, so repeating a run adds no information.
 
 ## Licence
 

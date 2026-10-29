@@ -13,6 +13,8 @@ Masking is enforced in Unity Catalog column masks, not in agent code.
 
 `bootstrap_data` creates the masks and prints the mask list from `information_schema.column_masks`. The data itself is synthetic or a public toy dataset, so the masks demonstrate the mechanism. A test that PII never appears in agent output is a plan target, not something this document claims.
 
+**Known issue: masked identity on the deployed endpoint.** The serving endpoint runs as service principal `216983c9-db86-4ef8-b500-9349e6025f94`, which is not in `admins` or `claims_role`, so it sees masked adjuster notes and hashed applicant ids. On the endpoint the risk lookup by applicant id returns nothing, and the `INCONSISTENT_NOTES` fraud flag and the SIU routing that follows are lost for claims such as C00017. The evaluation ran as the workspace owner, who sees real values, so served behaviour differs from evaluated behaviour. The fix is an explicit mask exception for that one principal: `AGENT_PRINCIPAL=<id> python -m scripts.apply_masks`. It is implemented but not applied, because it grants access to unmasked PII and needs the owner's approval. The endpoint also serves model version 3; the review fixes (SIU referral wording, auto-settle decision lines and audit records, approval locking, SQL guard hardening) are committed and pending redeploy.
+
 ## 2. Authority matrix
 
 The required approver is a function of the payable amount (after deductible and limit) and the fraud result. It is code, in `tools/authority.py`, and clause AUTH-01 states it in the policy corpus.
@@ -72,9 +74,11 @@ EU AI Act: AI systems used for risk assessment and pricing in life and health in
 ## 8. Honest limits
 
 - All data is synthetic or a public toy dataset (1,338 applicants reused from the author's earlier project). Policies and claims are generated.
-- Fraud labels are seeded (about 8 percent), so fraud precision and recall demonstrate the pipeline, not real-world performance.
+- Fraud labels are seeded (about 8 percent), so fraud precision and recall demonstrate the pipeline, not real-world performance. They are also circular (see below).
 - The risk model is not a validated pricing model. Its label is a charge quantile.
 - On Free Edition the role in an approval reply is not authenticated: anyone who can call the endpoint and knows a run id can reply as any role.
 - Pending approvals are held per endpoint process. A restart loses pending runs (decisions already made persist in the log table).
-- The approval log table (`eval.approval_decisions`) is created by the serving entrypoint at load time, so it exists only once the agent has been loaded or deployed. The endpoint was deployed on 2026-10-29; audit-table writes are best-effort.
+- The approval log table (`eval.approval_decisions`) is created by DDL in the deploy script (`scripts/deploy_agent_endpoint.py`). The endpoint is deployed (model version 3, deployed 2026-10-29); audit-table writes are best-effort.
+- Fraud and authority ground truth in the golden set were produced by the same deterministic code the agent uses, so the evaluation checks pass-through, not detection. Authority is separately checked against a hand-computed 18-row table.
+- Judge scores are uncalibrated (no human labels, no kappa).
 - PII masking and the access groups were exercised on one workspace only.

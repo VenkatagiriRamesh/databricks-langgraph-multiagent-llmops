@@ -1,22 +1,20 @@
 # LinkedIn post drafts
 
-Status: built, evaluated and deployed (endpoint verified 2026-10-29). Held-out numbers are in docs/EVALUATION.md. Judge calibration against hand labels is not done, so no kappa exists. Re-check every figure against docs/EVALUATION.md before posting.
+Status: built, evaluated and deployed (endpoint model version 3, verified 2026-10-29; review fixes pending redeploy). Held-out numbers (36 items, 1 run) are in docs/EVALUATION.md. Judge calibration against hand labels is not done, so no kappa exists. Re-check every figure against docs/EVALUATION.md before posting.
 
-## Full post (about 240 words), use now
+## Full post (about 250 words, under 260), use now
 
-A claims team does not lose time on the easy claims. It loses time deciding which claims are easy, which need an adjuster, which need a senior sign-off, and which should go to SIU, and then proving afterwards why that call was made.
+A claims team does not lose time on the easy claims. It loses time deciding which are easy, which need an adjuster, which need a senior sign-off, and which go to SIU, and then proving why that call was made.
 
 I built an open-source version of that workflow on Databricks Free Edition.
 
-A LangGraph supervisor routes each request to specialist agents: coverage checking against policy clauses, fraud screening with explainable red flags (never an automatic denial), underwriting risk with adverse-action style reason codes, an SQL analyst for loss-ratio and frequency questions, and a critic that can send a draft back twice before it escalates.
+A LangGraph supervisor routes each request to specialist agents: coverage checking against policy clauses, fraud screening with explainable flags (never an automatic denial), underwriting risk with reason codes, an SQL analyst, and a critic that can send a draft back twice before it escalates.
 
-Nothing is approved by prompt wording. A claims authority matrix decides who must sign off: auto, adjuster, senior adjuster, manager, or SIU. The audit record names the required role.
+Nothing is approved by prompt wording. A claims authority matrix decides who signs off: auto, adjuster, senior adjuster, manager, or SIU. Around it: MLflow tracing per node, a prompt registry, an evaluation-gated release, Unity Catalog governance with PII masked at the catalog layer, and a fairness audit. The risk model excludes sex.
 
-Around it: MLflow tracing per node, a prompt registry, an evaluation-gated release flow, Unity Catalog governance with PII masked at the catalog layer, and a fairness audit. The risk model excludes sex, which is the EU gender-neutral pricing context.
+Held-out set, 36 items, one run each: route accuracy 0.972, groundedness 0.903 (LLM judge, uncalibrated), safety 1.000 on 6 injection cases, SQL match 0.750 on only 4 items. An evaluation gate blocked a test regression, correctness 0.951 to 0.674 on the dev split.
 
-Measured on a held-out set of 31 items, 3 runs each: route accuracy 0.968, groundedness 0.944 (LLM judge, not yet calibrated against human labels), safety 1.000 on 3 injection cases, median notional cost per request about 0.0004 USD. Risk model disparate impact ratios: sex 0.937, region 0.865.
-
-Honest limits: all data is synthetic or public toy data, fraud labels are seeded (so fraud precision and recall of 1.0 are partly circular), judge scores are uncalibrated, and this is not a validated pricing model.
+Honest limits: the data is synthetic. Fraud and authority ground truth come from the same code the agent uses, so those matches test pass-through, not detection. An independent review found my first evaluation reported repeated runs that were cache replays. The deployed endpoint runs as an identity that sees masked PII, so it behaves differently from my evaluation. The fix is written but not applied.
 
 Code, plan and decision records: https://github.com/VenkatagiriRamesh/databricks-langgraph-multiagent-llmops
 
@@ -39,7 +37,7 @@ Which fraud indicators would you challenge first?
 ## Before you post
 
 - The full post has no placeholders left; confirm each figure against docs/EVALUATION.md and docs/GOVERNANCE.md.
-- Confirm the repo README shows the same real numbers and a "done / roadmap" section, and that nothing deferred is implied.
+- Confirm the repo README shows the same numbers (36 held-out items, 1 run) and a "done / roadmap" section, and that nothing deferred is implied.
 - Attach the architecture diagram (see docs/DIAGRAM_PROMPT.md); a post with a visual gets read more.
 - Tag no company or person without permission, including Bosch and Databricks.
 - Re-read for tone: no hype words, at most 2 emoji (this draft has none).

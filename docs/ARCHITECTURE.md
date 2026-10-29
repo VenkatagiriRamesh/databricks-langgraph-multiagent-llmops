@@ -60,7 +60,7 @@ Catalog `insurance_automation`:
 | `curated` | `applicants` (1,338), `policies` (1,338, synthetic), `claims` (1,000, synthetic), `policy_docs` (17 clauses), the two masking functions |
 | `agent_tools` | SQL functions `get_claim`, `get_policy`, `claims_summary_by_type`, `get_policy_clause` |
 | `models` | `risk_classifier` (alias `champion`); `claims_copilot_agent` when `deploy_agent_endpoint` is run (alias `challenger`) |
-| `eval` | Registered prompts (`supervisor`, `sql_analyst`, `writer`, `critic`); `approval_decisions` (created by the serving entrypoint when the agent loads) |
+| `eval` | Registered prompts (`supervisor`, `sql_analyst`, `writer`, `critic`); `approval_decisions` (created by DDL in `scripts/deploy_agent_endpoint.py`) |
 
 The `agent_tools` functions are read-only and can be exposed through Managed MCP. The graph does not call them: it reaches the warehouse through SQL statements. They are registered, not consumed by the graph.
 
@@ -72,7 +72,7 @@ The `agent_tools` functions are read-only and can be exposed through Managed MCP
 | Prompt Registry | Four prompts registered in `insurance_automation.eval` with alias `production`; `RegistryPromptStore` loads them and falls back to the in-code defaults if the registry fails |
 | Model Registry (UC) | `risk_classifier` logged as a pyfunc with signature and input example, promoted by alias only |
 | Experiments | Training run logs params, holdout AUC and fairness ratios; the evaluation run logs metrics with confidence intervals, cost, latency, STP and escalation rates |
-| Evaluation harness | A custom harness (`evaluation/harness.py`) with resumable JSONL progress, run per split and repeated runs. It logs to MLflow but does not use `mlflow.genai.evaluate`; the built-in judges returned empty metrics (ADR-001) |
+| Evaluation harness | A custom harness (`evaluation/harness.py`) with resumable JSONL progress, run per split (`--runs` defaults to 1). It logs to MLflow but does not use `mlflow.genai.evaluate`; the built-in judges returned empty metrics (ADR-001) |
 
 ## 7. Evaluation layers
 
@@ -84,16 +84,18 @@ The plan describes six layers. This table says which exist.
 | 2. Trajectory | Shipped, simple | `tool_trajectory` compares the ordered list of tools called with the expected list. Not computed from trace spans |
 | 3. End-to-end | Shipped | Route accuracy, citation validity, groundedness and correctness from custom LLM-as-judge prompts, cached per prompt |
 | 4. Multi-turn | Roadmap | Not built |
-| 5. Safety and robustness | Partial | Golden items with forbidden phrases and injected adjuster notes (at least 3 seeded), SQL guard, critic checks. The full red-team set is roadmap |
+| 5. Safety and robustness | Partial | Golden items with forbidden phrases and injected adjuster notes (12 injection and probe items across the two splits), SQL guard, critic checks. The full red-team set is roadmap |
 | 6. Operational | Shipped | Cost per request from the ledger (median reported), p95 latency, straight-through-processing rate, escalation rate |
 
-Also built: a golden set of 77 items (46 dev, 31 held-out) across all five routes, mean and confidence interval over repeated runs, a release gate (absolute thresholds plus no regression beyond the champion's interval), and an export plus Cohen's kappa routine for judge calibration. Results and calibration outcome: [see docs/EVALUATION.md].
+Also built: a golden set of 86 items (50 dev, 36 held-out) across all five routes, mean and confidence interval across items over applicable items only (one run per item; at temperature 0 repeated runs replay the cache), a release gate (absolute thresholds plus no regression beyond the champion's interval), and an export plus Cohen's kappa routine for judge calibration. Results and calibration outcome: [see docs/EVALUATION.md].
 
 Roadmap, not built: simulated multi-turn users, full red-team set, hybrid retrieval with reranking, model routing, agent memory, feedback flywheel, online scoring on production traces.
 
 ## 8. Release flow
 
-`run_eval` writes `eval/results/latest_report.json`. `gate_release` exits 1 if thresholds fail (route accuracy 0.90, groundedness 0.85, safety 1.00, authority match 0.90, median cost 0.02 USD) or if a metric regressed beyond the champion's confidence interval. On pass without `--offline` it moves the `champion` alias. `deploy_agent_endpoint` logs the agent from code, registers it with alias `challenger` and, with `--deploy`, creates a scale-to-zero endpoint. The endpoint `agents_insurance_automation-models-claims_copilot_agent` (model version 3) was deployed and exercised on 2026-10-29; sample responses are in `docs/endpoint_samples.md`. CI (`.github/workflows/ci.yml`) runs ruff, the offline unit tests and, if a report file is present, the offline gate.
+`run_eval` writes `eval/results/latest_report.json`. `gate_release` exits 1 if thresholds fail (route accuracy 0.90, groundedness 0.85, safety 1.00, authority match 0.90, median cost 0.02 USD) or if a metric regressed beyond the champion's confidence interval. On pass without `--offline` it moves the `champion` alias. `deploy_agent_endpoint` logs the agent from code, registers it with alias `challenger` and, with `--deploy`, creates a scale-to-zero endpoint. The endpoint `agents_insurance_automation-models-claims_copilot_agent` (model version 3) was deployed and exercised on 2026-10-29; sample responses are in `docs/endpoint_samples.md`. The review fixes (SIU referral wording, auto-settle decision lines and audit records, approval locking, SQL guard hardening) are committed but not yet deployed: pending redeploy.
+
+**Known issue: the endpoint is not the evaluated system.** The endpoint's service principal (216983c9-db86-4ef8-b500-9349e6025f94) sees masked adjuster notes and applicant ids. On the endpoint the risk lookup by applicant id returns nothing, and the `INCONSISTENT_NOTES` fraud flag and SIU routing for claims such as C00017 are lost. Evaluation ran as the workspace owner, who sees real values. The fix, an explicit mask exception for that one principal (`scripts/apply_masks.py` with `AGENT_PRINCIPAL`), is implemented but not applied because it grants access to unmasked PII and needs the owner's approval. CI (`.github/workflows/ci.yml`) runs ruff, the offline unit tests and, if a report file is present, the offline gate.
 
 ## 9. Free Edition design choices
 
