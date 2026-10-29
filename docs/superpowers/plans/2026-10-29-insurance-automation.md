@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- Repo name `databricks-langgraph-claims-automation`; catalog `insurance_automation`; schemas `raw`, `curated`, `agent_tools`, `models`, `eval`.
+- Repo name `databricks-langgraph-multiagent-llmops`; catalog `insurance_automation`; schemas `raw`, `curated`, `agent_tools`, `models`, `eval`.
 - Free Edition: serverless only, one SQL warehouse, **scale-to-zero** endpoint, at most one standing endpoint for this project.
 - LLM: `databricks-meta-llama-3-3-70b-instruct` by default, overridable by env `FM_API_MODEL`.
 - Single quotes in Python; secrets only from env or CLI profile, never committed; `.env` git-ignored.
@@ -36,7 +36,7 @@
 ## File Structure
 
 ```
-databricks-langgraph-claims-automation/
+databricks-langgraph-multiagent-llmops/
 ├── pyproject.toml, databricks.yml, .gitignore, .env.example, LICENSE, README.md
 ├── resources/jobs.yml
 ├── src/insurance_automation/
@@ -280,7 +280,7 @@ databricks-langgraph-claims-automation/
 - [ ] **Step 2:** PRD (one page, success metrics), ADRs 002 (retrieval choice), 003 (risk model), 004 (why LangGraph and the evaluation design), EU AI Act risk note in `GOVERNANCE.md`, cost analysis from the ledger.
 - [ ] **Step 3:** `docs/CV_BULLETS.md`: 2 to 3 bullets using only measured results, plus the skills-line addition from the spec ATS table, restricted to terms the build demonstrates.
 - [ ] **Step 4:** Verify README commands in a clean clone (`pip install -e '.[dev]'`, `pytest`). Expected: PASS.
-- [ ] **Step 5:** With user approval: `gh repo create VenkatagiriRamesh/databricks-langgraph-claims-automation --private` (or public as the user chooses), push. Verify CI passes on GitHub.
+- [ ] **Step 5:** With user approval: `gh repo create VenkatagiriRamesh/databricks-langgraph-multiagent-llmops --private` (or public as the user chooses), push. Verify CI passes on GitHub.
 
 ---
 

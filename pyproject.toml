@@ -1,5 +1,5 @@
 [project]
-name = "databricks-langgraph-claims-automation"
+name = "databricks-langgraph-multiagent-llmops"
 version = "0.1.0"
 description = "LangGraph multi-agent insurance claims and underwriting automation on Databricks Free Edition, with MLflow evaluation and an evaluation-gated release flow."
 license = "MIT"
