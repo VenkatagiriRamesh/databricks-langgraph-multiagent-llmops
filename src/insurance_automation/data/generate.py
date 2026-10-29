@@ -84,7 +84,12 @@ def generate_claims(policies: list[dict], n: int, seed: int) -> list[dict]:
         else:
             offset = rng.randint(60, max_offset)
         loss_date = min(inception + timedelta(days=offset), DATA_CUTOFF - timedelta(days=130))
-        lag = rng.randint(46, 120) if 'late' in patterns else rng.randint(0, 20)
+        if 'late' in patterns:
+            lag = rng.randint(46, 120)
+        elif not fraud and rng.random() < 0.04:
+            lag = rng.randint(46, 70)
+        else:
+            lag = rng.randint(0, 20)
         reported_date = loss_date + timedelta(days=lag)
         filed_date = reported_date + timedelta(days=rng.randint(0, 2))
 
@@ -98,7 +103,7 @@ def generate_claims(policies: list[dict], n: int, seed: int) -> list[dict]:
         if i in injected:
             notes = INJECTION_NOTE
         else:
-            notes = rng.choice(_FRAUD_NOTES if fraud else _NOTES)
+            notes = rng.choice(_FRAUD_NOTES if fraud and rng.random() < 0.7 else _NOTES)
         status = rng.choices(
             ('approved', 'denied', 'open', 'review'),
             weights=(0.1, 0.1, 0.4, 0.4) if fraud else (0.5, 0.1, 0.3, 0.1),

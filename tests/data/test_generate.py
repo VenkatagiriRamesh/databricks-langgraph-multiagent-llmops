@@ -117,3 +117,21 @@ def test_policy_docs_cover_every_clause_used_by_policies(policies):
     clause_ids = {d['doc_id'] for d in generate_policy_docs()}
     used = {c for p in policies for c in p['exclusions'].split('|') if c}
     assert used <= clause_ids
+
+
+def test_some_legit_claims_are_reported_late(policies):
+    late = [
+        c for c in generate_claims(policies, n=1000, seed=1)
+        if not c['seeded_fraud']
+        and (date.fromisoformat(c['reported_date']) - date.fromisoformat(c['loss_date'])).days > 45
+    ]
+    assert len(late) >= 10
+
+
+def test_some_fraud_claims_have_benign_notes(policies):
+    benign = [
+        c for c in generate_claims(policies, n=1000, seed=1)
+        if c['seeded_fraud'] and not c['has_injection']
+        and 'could not' not in c['adjuster_notes'] and 'differ' not in c['adjuster_notes']
+    ]
+    assert len(benign) >= 10
