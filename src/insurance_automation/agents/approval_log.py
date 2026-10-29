@@ -52,3 +52,17 @@ class SqlApprovalLog:
             f'{_lit(record.edit_text)})'
         )
         self.run_sql(stmt, self.warehouse_id)
+
+
+class BestEffortApprovalLog:
+    """A failed audit write must not take the agent down; failures are kept for inspection."""
+
+    def __init__(self, inner: ApprovalLog) -> None:
+        self.inner = inner
+        self.failures: list[str] = []
+
+    def append(self, record: ApprovalRecord) -> None:
+        try:
+            self.inner.append(record)
+        except Exception as exc:  # noqa: BLE001 - audit storage problems are reported, not fatal
+            self.failures.append(f'{type(exc).__name__}: {exc}')

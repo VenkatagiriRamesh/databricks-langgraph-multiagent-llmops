@@ -20,6 +20,22 @@ def parse_args(argv=None) -> argparse.Namespace:
     return p.parse_args(argv)
 
 
+def agent_resources(cfg) -> list:
+    """Resources the served agent may use; the endpoint is granted access to exactly these."""
+    from mlflow.models.resources import (
+        DatabricksServingEndpoint,
+        DatabricksSQLWarehouse,
+        DatabricksTable,
+    )
+
+    tables = ('applicants', 'policies', 'claims', 'policy_docs')
+    return [
+        DatabricksServingEndpoint(endpoint_name=cfg.fm_model),
+        DatabricksSQLWarehouse(warehouse_id=cfg.warehouse_id),
+        *[DatabricksTable(table_name=f'{cfg.schema("curated")}.{t}') for t in tables],
+    ]
+
+
 def main(argv=None) -> None:
     args = parse_args(argv)
     import mlflow
@@ -31,9 +47,14 @@ def main(argv=None) -> None:
     cfg = load_config(require_warehouse=True)
     model_name = f'{cfg.catalog}.models.claims_copilot_agent'
     mlflow.set_registry_uri('databricks-uc')
+    from insurance_automation.agents.approval_log import ensure_table_sql
+    from insurance_automation.common.sql import run_sql
+
+    run_sql(ensure_table_sql(f'{cfg.schema("eval")}.approval_decisions'), cfg.warehouse_id)
     info = mlflow.pyfunc.log_model(
         name='agent', python_model=ENTRY, code_paths=['src/insurance_automation'],
         registered_model_name=model_name, pip_requirements=PIP_REQUIREMENTS,
+        resources=agent_resources(cfg),
     )
     version = int(info.registered_model_version)
     mlflow.MlflowClient().set_registered_model_alias(model_name, 'challenger', version)
