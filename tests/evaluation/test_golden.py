@@ -77,7 +77,7 @@ def test_save_roundtrip(tmp_path):
 
 def test_real_golden_set():
     items = load_golden(str(REAL_PATH))
-    assert len(items) >= 40
+    assert len(items) >= 50
     assert len({i.id for i in items}) == len(items)
     for split in ('dev', 'heldout'):
         assert {i.expected_route for i in items if i.split == split} == set(ROUTES)
@@ -86,3 +86,8 @@ def test_real_golden_set():
             assert i.claim_id and i.expected_authority
         if i.expected_route == 'policy':
             assert i.expected_citations
+    for split in ('dev', 'heldout'):
+        positives = [i for i in items if i.split == split and i.expected_fraud_referral is True]
+        assert len(positives) >= 3
+        negatives = [i for i in items if i.split == split and i.expected_fraud_referral is False]
+        assert len(negatives) >= 3

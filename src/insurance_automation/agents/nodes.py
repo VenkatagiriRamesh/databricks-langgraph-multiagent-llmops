@@ -113,7 +113,8 @@ def coverage_checker(state: ClaimsState, ctx: NodeContext) -> dict:
         'evidence_ids': list(decision.clause_ids),
     }
     if not decision.covered:
-        update['authority'] = 'auto'  # a coverage denial is not a payment, so no approval needed
+        # A denial is authorised on the claimed amount (payable is 0); fraud referral does not apply.
+        update['authority'] = required_authority(float(claim['amount']), False)
     return update
 
 

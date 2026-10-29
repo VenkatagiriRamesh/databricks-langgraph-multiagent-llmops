@@ -56,3 +56,32 @@ def test_gate_interrupts_with_payload_then_applies_decision(decision, status):
     else:
         assert 'rejected' in final['answer'].lower()
         assert 'C00001' in final['answer'] and 'adjuster' in final['answer']
+
+
+def _denial_state(**kw):
+    return {
+        'claim_id': 'C00024', 'authority': 'adjuster', 'draft': 'Denied under EXC-01.',
+        'claim': {'amount': 5000.0},
+        'coverage': {'covered': False, 'payable_amount': 0.0}, **kw,
+    }
+
+
+def test_denial_gate_payload_says_deny_claim_and_confirm_denial():
+    from langgraph.types import Command
+    graph = _gate_graph()
+    cfg = {'configurable': {'thread_id': 'd'}}
+    res = graph.invoke(_denial_state(), cfg)
+    payload = res['__interrupt__'][0].value
+    assert payload['proposed_decision'] == 'deny_claim'
+    assert payload['approve_means'] == 'confirm_denial'
+    final = graph.invoke(Command(resume={'decision': 'approve'}), cfg)
+    assert final['approval_status'] == 'approved'
+    assert final['answer'].endswith('Decision: DENIAL CONFIRMED by adjuster for claim C00024.')
+
+
+def test_payment_gate_payload_says_approve_means_approve_payment():
+    graph = _gate_graph()
+    res = graph.invoke(_state(), {'configurable': {'thread_id': 'p'}})
+    payload = res['__interrupt__'][0].value
+    assert payload['proposed_decision'] == 'approve_payment'
+    assert payload['approve_means'] == 'approve_payment'

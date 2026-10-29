@@ -103,6 +103,7 @@ def _result(graph, config: dict, started: float, cost_before: float, ledger) -> 
         approval_status='pending' if pending else (state.get('approval_status') or 'not_required'),
         required_authority=state.get('authority'),
         fraud_referred=fraud['refer_to_siu'] if fraud else None,
+        evidence=nodes._evidence_text(state),
     )
     return GraphResult(
         'pending_approval' if pending else 'done', output,

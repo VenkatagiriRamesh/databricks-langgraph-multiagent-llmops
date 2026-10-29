@@ -79,6 +79,7 @@ def test_policy_route_completes_without_approval_and_cites_hits():
     assert res.output.citations == ['WAIT-01'] and res.output.tools_called == ['retrieve_policy']
     assert [n for n, _ in ledger.records] == ['supervisor', 'writer', 'critic']
     assert res.output.latency_s >= 0
+    assert 'Thirty days.' in res.output.evidence and 'WAIT-01' in res.output.evidence
 
 
 def test_empty_question_is_refused_with_no_llm_calls():
@@ -110,14 +111,29 @@ def test_unsafe_sql_is_never_executed_through_the_graph():
     assert ft.sql_calls == [] and res.output.tools_called == [] and res.output.sql is None
 
 
-def test_denied_claim_completes_without_approval():
-    ft = FakeTools(claim={**CLAIM, 'claim_type': 'cosmetic'})
+def test_small_denial_completes_without_approval():
+    ft = FakeTools(claim={**CLAIM, 'claim_type': 'cosmetic', 'amount': 1500.0})
     ctx, _, _, _ = make_ctx(
         {**CLAIM_RESP, 'writer': 'Denied under EXC-01.'}, ft,
     )
     res = invoke(build_graph(ctx), 'Decide claim C00001', 't10')
     assert res.status == 'done' and res.output.tools_called == ['check_coverage']
     assert res.output.citations == ['EXC-01']
+    assert res.output.required_authority == 'auto'
+
+
+def test_large_denial_pauses_for_human_sign_off():
+    ft = FakeTools(claim={**CLAIM, 'claim_type': 'cosmetic', 'amount': 5000.0})
+    ctx, _, _, _ = make_ctx(
+        {**CLAIM_RESP, 'writer': 'Denied under EXC-01.'}, ft,
+    )
+    graph = build_graph(ctx)
+    res = invoke(graph, 'Decide claim C00001', 't10b')
+    assert res.status == 'pending_approval'
+    assert res.output.required_authority == 'adjuster'
+    assert res.interrupt_payload['approve_means'] == 'confirm_denial'
+    final = resume(graph, 't10b', 'approve')
+    assert 'DENIAL CONFIRMED by adjuster' in final.output.answer
 
 
 def test_cost_is_ledger_delta_when_available():

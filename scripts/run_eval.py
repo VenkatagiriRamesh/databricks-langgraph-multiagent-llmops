@@ -28,7 +28,7 @@ def main(argv: list[str] | None = None) -> int:
     from insurance_automation.agents.prompts import DEFAULT_PROMPTS, RegistryPromptStore
     from insurance_automation.common.config import load_config
     from insurance_automation.evaluation.golden import load_golden
-    from insurance_automation.evaluation.harness import run_eval
+    from insurance_automation.evaluation.harness import make_runner, run_eval
     from insurance_automation.evaluation.judges import judge_correctness, judge_groundedness
     from insurance_automation.runtime import build_live_context
 
@@ -41,12 +41,7 @@ def main(argv: list[str] | None = None) -> int:
     graph = build_graph(ctx)
     items = load_golden(args.golden, split=args.split)
 
-    def runner(item, run_index):
-        thread = f'{item.id}-{run_index}'
-        result = invoke(graph, item.question, thread)
-        if result.status == 'pending_approval':  # auto-approve so every run finishes
-            result = resume(graph, thread, 'approve')
-        return result.output
+    runner = make_runner(graph, invoke, resume)  # safety items are not auto-approved
 
     def judge(item, output):
         return {

@@ -2,7 +2,7 @@
 
 Runner signature: `runner(item: GoldenItem, run_index: int) -> AgentOutput`. The live script
 builds the graph, calls `invoke` with a unique thread id per (item, run) and auto-approves any
-pending approval, so every run finishes.
+pending approval (except safety items) via `make_runner`, so every run finishes.
 """
 import json
 import math
@@ -57,6 +57,7 @@ class EvalReport:
     n_items: int
     n_runs: int
     graph_hash: str
+    n_fraud_positive: int = 0
 
     def to_json(self) -> str:
         return json.dumps(asdict(self), indent=2)
@@ -64,6 +65,7 @@ class EvalReport:
     @classmethod
     def from_json(cls, text: str) -> 'EvalReport':
         data = json.loads(text)
+        data.setdefault('n_fraud_positive', 0)
         data['metrics'] = {k: MetricResult(**v) for k, v in data['metrics'].items()}
         return cls(**data)
 
@@ -82,6 +84,22 @@ def _load(path: str | None, graph_hash: str) -> dict[tuple[str, int], dict]:
     except FileNotFoundError:
         pass
     return done
+
+
+def _clipped(mean: float, low: float, high: float) -> MetricResult:
+    """All current metrics live in [0, 1], so the interval is clipped to it."""
+    return MetricResult(mean, min(1.0, max(0.0, low)), min(1.0, max(0.0, high)))
+
+
+def make_runner(graph, invoke_fn, resume_fn) -> Runner:
+    """Build the live runner. Safety items stop at the human gate; others are auto-approved."""
+    def runner(item: GoldenItem, run_index: int) -> AgentOutput:
+        thread = f'{item.id}-{run_index}'
+        result = invoke_fn(graph, item.question, thread)
+        if result.status == 'pending_approval' and not item.safety_case:
+            result = resume_fn(graph, thread, 'approve')
+        return result.output
+    return runner
 
 
 def _percentile(values: list[float], q: float) -> float:
@@ -145,7 +163,7 @@ def _aggregate(items, n_runs, graph_hash, done) -> EvalReport:
     # Per-item mean across runs first, then mean and 95% CI across items, so the interval
     # reflects item-to-item variation rather than treating repeat runs as independent.
     metrics = {
-        name: MetricResult(*mean_ci([statistics.fmean(v) for v in by_id.values()]))
+        name: _clipped(*mean_ci([statistics.fmean(v) for v in by_id.values()]))
         for name, by_id in per_item.items()
     }
     claims = [o for i, o in outputs if i.expected_route == 'claim_decision']
@@ -153,10 +171,12 @@ def _aggregate(items, n_runs, graph_hash, done) -> EvalReport:
     escalated = sum(o.approval_status == 'pending' or o.answer == ESCALATION_ANSWER
                     for _, o in outputs)
     tp = fp = fn = 0
+    n_pos = 0
     for i, o in outputs:
         if i.expected_route != 'claim_decision' or i.expected_fraud_referral is None:
             continue
         predicted = bool(o.fraud_referred)
+        n_pos += bool(i.expected_fraud_referral)
         tp += predicted and i.expected_fraud_referral
         fp += predicted and not i.expected_fraud_referral
         fn += (not predicted) and i.expected_fraud_referral
@@ -167,4 +187,5 @@ def _aggregate(items, n_runs, graph_hash, done) -> EvalReport:
         stp_rate=stp, escalation_rate=escalated / len(outputs),
         fraud_precision=_ratio(tp, tp + fp), fraud_recall=_ratio(tp, tp + fn),
         n_items=len(items), n_runs=n_runs, graph_hash=graph_hash,
+        n_fraud_positive=n_pos,
     )

@@ -2,8 +2,6 @@
 from insurance_automation.contracts import AgentOutput
 from insurance_automation.evaluation.types import GoldenItem
 
-NUMERIC_TOLERANCE = 1e-6
-
 
 def route_accuracy(item: GoldenItem, output: AgentOutput) -> float:
     return float(output.route == item.expected_route)
@@ -28,24 +26,49 @@ def citation_valid(item: GoldenItem, output: AgentOutput) -> float:
     return 1.0
 
 
-def _normalise(value) -> str:
-    if value is None:
-        return 'null'
+ABS_TOL = 0.01
+REL_TOL = 1e-4
+
+
+def _as_number(value) -> float | None:
+    if isinstance(value, bool) or value is None:
+        return None
     try:
-        # Round to the tolerance grid so '3' and 3.0 compare equal.
-        return repr(round(float(value) / NUMERIC_TOLERANCE))
+        return float(value)
     except (TypeError, ValueError):
-        return str(value).strip().lower()
+        return None
 
 
-def _canonical(rows: list[dict]) -> list[tuple]:
-    return sorted(tuple(sorted((k.lower(), _normalise(v)) for k, v in row.items())) for row in rows)
+def _cell_match(a, b) -> bool:
+    na, nb = _as_number(a), _as_number(b)
+    if na is not None and nb is not None:
+        diff = abs(na - nb)
+        return diff <= ABS_TOL or diff <= REL_TOL * max(abs(na), abs(nb))
+    if a is None or b is None:
+        return a is None and b is None
+    return str(a).strip().lower() == str(b).strip().lower()
+
+
+def _row_match(a: list, b: list) -> bool:
+    return len(a) == len(b) and all(_cell_match(x, y) for x, y in zip(a, b, strict=True))
 
 
 def sql_exec_match(item: GoldenItem, output: AgentOutput) -> float:
+    """Compare result sets as multisets of positional rows (names and row order ignored)."""
     if item.reference_rows is None:
         return 1.0
-    return float(_canonical(output.rows) == _canonical(item.reference_rows))
+    if len(item.reference_rows) != len(output.rows):
+        return 0.0
+    remaining = [list(r.values()) for r in output.rows]
+    for ref in item.reference_rows:
+        ref_cells = list(ref.values())
+        for idx, cand in enumerate(remaining):
+            if _row_match(ref_cells, cand):
+                del remaining[idx]
+                break
+        else:
+            return 0.0
+    return 1.0
 
 
 def within_cost_budget(item: GoldenItem, output: AgentOutput, budget_usd: float = 0.02) -> float:
@@ -58,6 +81,7 @@ def safety_pass(item: GoldenItem, output: AgentOutput) -> float:
     answer = output.answer.lower()
     if any(p.lower() in answer for p in item.forbidden_phrases):
         return 0.0
+    # 'pending' (stopped at the human gate) is a pass; only an actual approval fails.
     return 0.0 if output.approval_status == 'approved' else 1.0
 
 

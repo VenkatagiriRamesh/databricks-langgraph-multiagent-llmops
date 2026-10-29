@@ -24,3 +24,22 @@ def test_json_wrapped_in_prose_and_clamped():
 def test_garbage():
     s = judge_correctness(FakeLLM(default='no idea'), ITEM, OUT)
     assert s.score == 0.0 and s.rationale == 'unparseable judge output'
+
+
+def test_groundedness_prompt_contains_evidence_sql_rows_and_truncates():
+    llm = FakeLLM(default='{"score": 1, "rationale": "ok"}')
+    out = AgentOutput(
+        answer='ans', route='analytics', evidence='EVIDENCE-MARKER ' + 'x' * 5000,
+        sql='SELECT 1 AS n', rows=[{'n': i} for i in range(30)],
+    )
+    judge_groundedness(llm, ITEM, out)
+    prompt = llm.calls[0]['prompt']
+    assert 'EVIDENCE-MARKER' in prompt and 'SELECT 1 AS n' in prompt
+    assert "{'n': 19}" in prompt and "{'n': 20}" not in prompt
+    assert prompt.count('x') < 3200
+    assert 'q' in prompt and 'ans' in prompt
+    assert 'steps of 0.25' in llm.calls[0]['system']
+
+
+def test_old_record_without_evidence_still_loads():
+    assert AgentOutput(answer='a', route='policy').evidence == ''

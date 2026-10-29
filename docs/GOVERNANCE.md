@@ -25,7 +25,7 @@ The required approver is a function of the payable amount (after deductible and 
 | Over 25,000 | manager |
 | Any SIU referral | SIU |
 
-A claim that is not covered gets authority `auto`, because a coverage denial is not a payment. Every other authority pauses the graph at the approval gate with the claim id, required role, proposed decision, payable amount, fraud flag codes and risk reason-code features.
+For a covered claim the amount is the payable amount; a claim of 26,000 with a 1,500 deductible pays 24,500 and needs a senior adjuster, not a manager. A claim denied on coverage (exclusion, waiting period, no clause) is authorised on the claimed amount, because a customer-affecting denial needs sign-off at the level for that amount (fraud referral does not apply to a denial); denials under 2,000 stay `auto`. At the gate the proposed decision for a denial is `deny_claim`, `approve` means `confirm_denial`, and the final text reads `Decision: DENIAL CONFIRMED by <role> for claim <id>.` Every other authority pauses the graph at the approval gate with the claim id, required role, proposed decision, payable amount, fraud flag codes and risk reason-code features.
 
 ## 3. Fraud screening never auto-denies
 

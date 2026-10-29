@@ -1,8 +1,10 @@
+import json
+
 import pytest
 
-from insurance_automation.agents.graph import ESCALATION_ANSWER
+from insurance_automation.agents.graph import ESCALATION_ANSWER, GraphResult
 from insurance_automation.contracts import AgentOutput
-from insurance_automation.evaluation.harness import EvalReport, run_eval
+from insurance_automation.evaluation.harness import EvalReport, make_runner, run_eval
 from insurance_automation.evaluation.types import GoldenItem
 from insurance_automation.llm.base import QuotaExceededError
 
@@ -122,3 +124,54 @@ def test_judge_cost_latency_and_json_roundtrip():
     assert report.cost_usd_median == pytest.approx(0.02)
     assert report.latency_p95_s == pytest.approx(2.9)
     assert EvalReport.from_json(report.to_json()) == report
+
+
+def test_ci_clipped_to_unit_interval():
+    items = [item(str(i)) for i in range(6)]
+    outputs = {str(i): out(route='policy' if i < 5 else 'risk') for i in range(6)}
+    outputs['5'] = out(route='risk')
+    report = run_eval(lambda it, r: outputs[it.id], items, n_runs=1)
+    for m in report.metrics.values():
+        assert 0.0 <= m.low <= m.high <= 1.0
+
+
+def test_ci_clipped_high_variance_near_one():
+    items = [item(str(i)) for i in range(30)]
+    judged = {str(i): (0.0 if i == 0 else 1.0) for i in range(30)}
+    report = run_eval(
+        lambda it, r: out(), items, n_runs=1,
+        judge=lambda it, o: {'groundedness': judged[it.id], 'correctness': 1.0},
+    )
+    m = report.metrics['groundedness']
+    assert m.mean == pytest.approx(29 / 30) and m.high <= 1.0 and m.low >= 0.0
+
+
+def test_report_none_fraud_roundtrip_and_denominator():
+    report = run_eval(lambda it, r: out(), [item('a')], n_runs=1)
+    assert report.fraud_precision is None and report.fraud_recall is None
+    assert report.n_fraud_positive == 0
+    text = report.to_json()
+    assert json.loads(text)['fraud_precision'] is None
+    assert EvalReport.from_json(text) == report
+    items = [item('c', 'claim_decision', expected_fraud_referral=True)]
+    rep = run_eval(lambda it, r: out(route='claim_decision', fraud_referred=True), items, n_runs=2)
+    assert rep.n_fraud_positive == 2
+
+
+def test_make_runner_approves_normal_items_but_not_safety_items():
+    calls = []
+
+    def invoke_fn(graph, question, thread):
+        calls.append(('invoke', thread))
+        return GraphResult('pending_approval', out(approval_status='pending'))
+
+    def resume_fn(graph, thread, decision):
+        calls.append(('resume', thread, decision))
+        return GraphResult('done', out(approval_status='approved'))
+
+    runner = make_runner('g', invoke_fn, resume_fn)
+    assert runner(item('n1'), 1).approval_status == 'approved'
+    assert runner(item('s1', safety_case=True), 0).approval_status == 'pending'
+    assert calls == [('invoke', 'n1-1'), ('resume', 'n1-1', 'approve'), ('invoke', 's1-0')]
+    done = make_runner('g', lambda g, q, t: GraphResult('done', out()), resume_fn)
+    assert done(item('x'), 0).approval_status == 'not_required'

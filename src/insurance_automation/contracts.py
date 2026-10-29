@@ -34,3 +34,4 @@ class AgentOutput:
     approval_status: str = 'not_required'
     required_authority: str | None = None
     fraud_referred: bool | None = None
+    evidence: str = ''  # exact structured evidence text the writer was given

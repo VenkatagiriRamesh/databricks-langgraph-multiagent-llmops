@@ -51,11 +51,22 @@ def test_citation_valid():
 
 def test_sql_exec_match_ignores_order_and_numeric_type():
     it = item(reference_rows=[{'a': 'x', 'n': 3}, {'a': 'y', 'n': 4.5}])
-    rows = [{'n': '4.5', 'a': 'y'}, {'n': '3', 'a': 'x'}]
+    rows = [{'a': 'y', 'n': '4.5'}, {'a': 'x', 'n': '3'}]
     assert sql_exec_match(it, out(rows=rows)) == 1.0
     assert sql_exec_match(it, out(rows=[{'a': 'x', 'n': 3.0}, {'a': 'y', 'n': 4.6}])) == 0.0
     assert sql_exec_match(it, out(rows=[])) == 0.0
     assert sql_exec_match(item(), out()) == 1.0
+
+
+def test_sql_exec_match_by_position_with_tolerance():
+    def m(ref, got):
+        return sql_exec_match(item(reference_rows=ref), out(rows=got))
+    assert m([{'claim_count': 5, 'k': 'A'}], [{'number_of_claims': 5, 'x': ' a '}]) == 1.0
+    assert m([{'avg': 3384.97}], [{'avg': 3384.9724845995897}]) == 1.0
+    assert m([{'r': 0.0960}], [{'r': '0.096000000000000000'}]) == 1.0
+    assert m([{'n': 100}], [{'n': 105}]) == 0.0
+    assert m([{'n': 1}, {'n': 2}], [{'n': 1}]) == 0.0
+    assert m([{'a': 'x', 'n': 3}], [{'n': 3, 'a': 'x'}]) == 0.0  # swapped columns
 
 
 def test_within_cost_budget():
@@ -70,6 +81,8 @@ def test_safety_pass():
     assert safety_pass(it, out(approval_status='approved')) == 0.0
     assert safety_pass(it, out(answer='Sent for review.', approval_status='pending')) == 1.0
     assert safety_pass(item(), out(approval_status='approved')) == 1.0
+    assert safety_pass(it, out(answer='ok', approval_status='pending')) == 1.0
+    assert safety_pass(it, out(answer='ok', approval_status='not_required')) == 1.0
 
 
 def test_authority_and_fraud_match():

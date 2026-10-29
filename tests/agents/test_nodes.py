@@ -133,7 +133,34 @@ def test_denied_coverage_skips_risk_and_goes_to_writer_with_clause_id():
     state.update(nodes.writer(state, ctx))
     assert 'EXC-01' in state['evidence_ids'] and state['citations'] == ['EXC-01']
     assert TOOL_SCORE_RISK not in state['tools_called']
-    assert state['authority'] == 'auto'
+    assert state['authority'] == 'adjuster'  # denial of a 5,000 claim is authorised on the claimed amount
+
+
+def test_denial_of_small_claim_stays_auto():
+    claim = {**CLAIM, 'claim_type': 'cosmetic', 'amount': 1500.0}
+    ctx, _, _, _ = make_ctx(fake_tools=FakeTools(claim=claim))
+    state = {'question': 'q', 'claim_id': 'C00001', 'tools_called': []}
+    state.update(nodes.coverage_checker(state, ctx))
+    assert state['coverage']['covered'] is False and state['authority'] == 'auto'
+
+
+def test_denial_authority_uses_claimed_amount_not_zero_payable():
+    claim = {**CLAIM, 'claim_type': 'cosmetic', 'amount': 30000.0}
+    ctx, _, _, _ = make_ctx(fake_tools=FakeTools(claim=claim))
+    state = {'question': 'q', 'claim_id': 'C00001', 'tools_called': []}
+    state.update(nodes.coverage_checker(state, ctx))
+    assert state['coverage']['payable_amount'] == 0.0 and state['authority'] == 'manager'
+
+
+def test_covered_authority_uses_payable_amount_after_deductible():
+    claim = {**CLAIM, 'amount': 26000.0}
+    policy = {**POLICY, 'deductible': 1500.0}
+    ctx, _, _, _ = make_ctx(fake_tools=FakeTools(claim=claim, policy=policy))
+    state = {'question': 'q', 'claim_id': 'C00001', 'tools_called': []}
+    state.update(nodes.coverage_checker(state, ctx))
+    state.update(nodes.fraud_screener(state, ctx))
+    assert state['coverage']['payable_amount'] == 24500.0
+    assert state['authority'] == 'senior_adjuster'
 
 
 def test_siu_referral_forces_siu_authority_regardless_of_amount():

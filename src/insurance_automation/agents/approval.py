@@ -17,16 +17,26 @@ def approval_gate(state: ClaimsState) -> dict:
     fraud = state.get('fraud') or {}
     risk = state.get('risk') or {}
     referred = bool(fraud.get('refer_to_siu'))
+    coverage = state.get('coverage') or {}
+    denial = coverage.get('covered') is False
+    if referred:
+        proposed = 'refer_to_siu'
+    else:
+        proposed = 'deny_claim' if denial else 'approve_payment'
     resume_value = interrupt({
         'claim_id': state.get('claim_id'),
         'required_authority': state['authority'],
-        'proposed_decision': 'refer_to_siu' if referred else 'approve_payment',
+        'proposed_decision': proposed,
+        'approve_means': 'confirm_denial' if proposed == 'deny_claim' else proposed,
         'payable_amount': (state.get('coverage') or {}).get('payable_amount', 0.0),
         'fraud_flags': [f['code'] for f in fraud.get('flags', [])],
         'reason_codes': [r['feature'] for r in risk.get('reason_codes', [])],
     })
     decision = resume_value.get('decision')
     role, claim_id = state['authority'], state.get('claim_id')
+    if decision == 'approve' and proposed == 'deny_claim':
+        answer = f'{state.get("draft", "")}\n\nDecision: DENIAL CONFIRMED by {role} for claim {claim_id}.'
+        return {'approval_status': 'approved', 'answer': answer}
     if decision == 'approve':
         amount = float((state.get('coverage') or {}).get('payable_amount', 0.0))
         answer = (
