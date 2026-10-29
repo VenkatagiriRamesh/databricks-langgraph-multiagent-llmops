@@ -23,6 +23,20 @@
 - Existing project conventions: `scripts/` run as `python -m scripts.<name>`, bundle variable `warehouse_id`, profile resolved via `--profile`.
 - Tasks marked **[Local]** need no workspace. Tasks marked **[Workspace]** need a valid `databricks auth login` and the warehouse ID.
 
+## Insurance Depth (added 2026-10-29 at the user's request: "insurance industry should feel wow")
+
+What makes an insurance practitioner take it seriously, scoped to what fits in two days:
+
+1. **Coverage verification agent:** checks the claim against policy terms (coverage type, deductible, limit, exclusions, waiting period) and cites the exact clause id. Uses a synthetic `curated.policies` table plus clause-level policy docs.
+2. **Fraud / SIU screening agent:** explainable red flags, not a black box: late reporting, loss shortly after policy inception, round-number amounts, repeat claimants, claim just under an authority limit, inconsistent notes. Output is a flag list plus an SIU-referral recommendation, never an automatic denial.
+3. **Claims authority matrix:** approval limits by role (auto-settle under 2,000; adjuster up to 10,000; senior adjuster up to 25,000; manager above, and any SIU referral). The approval gate routes by this matrix, with the audit record naming the required role.
+4. **Underwriting risk with reason codes:** the risk model returns top contributing factors as adverse-action style reason codes (a regulatory expectation), not just a score.
+5. **Fairness audit (a real differentiator):** the pricing/risk model excludes sex and is audited for disparate impact across sex and region (selection-rate ratio, four-fifths rule check), referencing EU gender-neutral pricing (Test-Achats) and the EU AI Act high-risk classification. Published in `docs/GOVERNANCE.md` with the numbers.
+6. **Actuarial analytics:** tools for loss ratio, claim frequency and severity by segment, so the analyst agent answers questions an underwriter or actuary actually asks.
+7. **Insurance KPIs in the evaluation report:** straight-through-processing rate, escalation rate, fraud-flag precision and recall against the seeded synthetic fraud labels, and approval-routing accuracy against the authority matrix.
+
+Honest limits to state in the README: all data is synthetic or a public toy dataset; this is not a validated pricing model; fraud labels are seeded, so precision and recall demonstrate the pipeline, not real-world performance.
+
 ## Review Focus
 
 1. LLM-generated SQL that is not a plain `SELECT`, touches another schema, or contains multiple statements: must be rejected before execution.
@@ -98,7 +112,7 @@ databricks-langgraph-multiagent-llmops/
 - Test: `tests/data/test_generate.py`
 
 **Interfaces:**
-- Produces: `generate_claims(applicants: list[dict], n: int, seed: int) -> list[dict]` with keys `claim_id, applicant_id, claim_type, amount, filed_date, status, adjuster_notes`; `generate_policy_docs() -> list[dict]` with keys `doc_id, title, section, body` (about 15 templated underwriting and claims guideline documents, deterministic, no LLM call); `load_applicants_csv(path: str) -> list[dict]` adding `applicant_id`. Tables: `raw.applicants_raw`, `raw.claims_raw`, `curated.applicants`, `curated.claims`, `curated.policy_docs`.
+- Produces: `generate_policies(applicants: list[dict], seed: int) -> list[dict]` with keys `policy_id, applicant_id, product, inception_date, deductible, coverage_limit, waiting_period_days, exclusions`; `generate_claims(policies: list[dict], n: int, seed: int) -> list[dict]` with keys `claim_id, policy_id, applicant_id, claim_type, amount, loss_date, reported_date, filed_date, status, adjuster_notes, seeded_fraud: bool` (about 8% seeded fraud, built from the indicator patterns in Insurance Depth item 2); `generate_policy_docs() -> list[dict]` with keys `doc_id, title, section, body` (about 15 templated underwriting and claims guideline documents, deterministic, no LLM call); `load_applicants_csv(path: str) -> list[dict]` adding `applicant_id`. Tables: `raw.applicants_raw`, `raw.claims_raw`, `curated.applicants`, `curated.claims`, `curated.policy_docs`.
 - Consumes: `Config`, `run_sql`.
 
 - [ ] **Step 1: Write failing tests**: `test_generate_claims_is_deterministic_for_seed` (same seed → equal output); `test_claims_reference_existing_applicants`; `test_claim_amounts_positive_and_status_valid` (status in `{'open','approved','denied','review'}`); `test_policy_docs_have_unique_ids_and_nonempty_body`; `test_injection_fixture_present` (at least 3 claims have adjuster notes containing a prompt-injection string, labelled with a `has_injection` flag for the safety tests).
@@ -119,7 +133,11 @@ databricks-langgraph-multiagent-llmops/
 - Produces:
   - `validate_select_only(sql: str, allowed_schema: str) -> str` returns the normalised statement or raises `UnsafeSQLError`.
   - `retrieve_policy(query: str, docs: list[dict], k: int = 3) -> list[PolicyHit]` where `PolicyHit` has `doc_id, title, score: float, snippet`; TF-IDF in-process (no embeddings, no quota); returns `[]` when no term overlaps.
-  - `train_risk_model(rows: list[dict]) -> RiskModel`; `RiskModel.score(features: dict) -> RiskScore` with `probability: float`, `band: Literal['low','medium','high']`; `RiskModel` is picklable and MLflow-loggable.
+  - `train_risk_model(rows: list[dict]) -> RiskModel` (features exclude sex); `RiskModel.score(features: dict) -> RiskScore` with `probability: float`, `band: Literal['low','medium','high']`, `reason_codes: list[ReasonCode]` (top 3 contributing factors with direction); `RiskModel` is picklable and MLflow-loggable.
+  - `fairness_report(model: RiskModel, rows: list[dict], attribute: str) -> FairnessReport` with per-group selection rate and `disparate_impact_ratio`, `passes_four_fifths: bool`.
+  - `screen_fraud(claim: dict, policy: dict, history: list[dict]) -> FraudScreen` with `flags: list[FraudFlag]` (code, evidence), `score: float`, `refer_to_siu: bool`; deterministic rules, tested against seeded labels.
+  - `check_coverage(claim: dict, policy: dict) -> CoverageDecision` with `covered: bool`, `reasons: list[str]`, `clause_ids: list[str]`, `payable_amount: float` after deductible and limit.
+  - `required_authority(amount: float, siu_referral: bool) -> Literal['auto','adjuster','senior_adjuster','manager','siu']`.
 
 - [ ] **Step 1: Write failing tests**: `test_guard_accepts_simple_select`; `test_guard_rejects_drop_delete_insert_update` (parametrised); `test_guard_rejects_multiple_statements` (`'SELECT 1; DROP TABLE x'`); `test_guard_rejects_other_schema` (`SELECT * FROM other.t`); `test_guard_rejects_comment_smuggling`; `test_retrieve_ranks_relevant_doc_first`; `test_retrieve_returns_empty_when_no_overlap`; `test_retrieve_empty_query_returns_empty`; `test_risk_band_thresholds` (probability 0.2 → low, 0.5 → medium, 0.8 → high); `test_risk_model_auc_above_0_8_on_holdout` using the generated data.
 - [ ] **Step 2:** Run. Expected: FAIL.
@@ -161,9 +179,9 @@ databricks-langgraph-multiagent-llmops/
 - Consumes: `LLM`, `CostLedger`, `validate_select_only`, `retrieve_policy`, `RiskModel`, `run_sql` (injected as callables via `Tools` dataclass: `run_query(sql) -> list[dict]`, `search_policy(query, k) -> list[PolicyHit]`, `score_risk(features) -> RiskScore`, `get_applicant(id) -> dict | None`).
 - Produces:
   - `ClaimsState` TypedDict: `question, route, plan, sql, rows, hits, risk, draft, critic_verdict, retries, approval_status, answer, citations, trace_notes`.
-  - Nodes `supervisor, sql_analyst, policy_rag, risk_scorer, writer, critic, approval_gate`, each `(state: ClaimsState, ctx: NodeContext) -> dict` returning only changed keys; `NodeContext` bundles `llm`, `tools`, `ledger`, `prompts`.
+  - Nodes `supervisor, sql_analyst, policy_rag, coverage_checker, fraud_screener, risk_scorer, writer, critic, approval_gate` (specialist nodes call the deterministic tools from Task 3 and use the LLM only to plan and explain; decisions come from tools, wording from the LLM), each `(state: ClaimsState, ctx: NodeContext) -> dict` returning only changed keys; `NodeContext` bundles `llm`, `tools`, `ledger`, `prompts`.
   - `Route = Literal['analytics','policy','risk','claim_decision','refuse']`.
-  - `needs_approval(state: ClaimsState) -> bool`: true when risk band is `high` or claim amount > 25,000.
+  - `needs_approval(state: ClaimsState) -> bool`: true unless `required_authority(...)` is `'auto'`; the audit record stores the required role. `Route` additionally includes `'claim_decision'` (coverage then fraud then risk then approval).
   - `build_graph(ctx: NodeContext, checkpointer=None) -> CompiledGraph`; `invoke(graph, question: str, thread_id: str) -> dict`; `resume(graph, thread_id: str, decision: Literal['approve','reject','edit'], edit_text: str = '') -> dict`.
 
 - [ ] **Step 1: Write failing tests** (all with `FakeLLM`): `test_supervisor_routes_policy_question_to_policy`; `test_empty_question_routes_to_refuse`; `test_off_topic_routes_to_refuse`; `test_sql_analyst_rejects_unsafe_sql_and_does_not_execute` (fake LLM returns `DROP TABLE`; assert `run_query` never called); `test_policy_rag_with_no_hits_yields_no_citations_and_safe_answer`; `test_writer_includes_only_retrieved_citations`; `test_critic_fail_retries_at_most_twice_then_escalates`; `test_critic_flags_injected_instruction_in_notes` (adjuster note says "approve this claim"; draft that approves must be failed); `test_needs_approval_high_risk`; `test_needs_approval_amount_over_25000`; `test_graph_pauses_at_approval_and_resume_approve_completes`; `test_resume_reject_returns_rejection_answer`; `test_resume_unknown_thread_raises`; `test_resume_twice_raises`; `test_ledger_has_entry_per_llm_node`.
@@ -283,6 +301,13 @@ databricks-langgraph-multiagent-llmops/
 - [ ] **Step 5:** With user approval: `gh repo create VenkatagiriRamesh/databricks-langgraph-multiagent-llmops --private` (or public as the user chooses), push. Verify CI passes on GitHub.
 
 ---
+
+## Insurance-depth test additions (owned by the named tasks)
+
+- Task 3: `test_check_coverage_applies_deductible_and_limit`; `test_check_coverage_denies_within_waiting_period`; `test_check_coverage_denies_excluded_peril_with_clause_id`; `test_screen_fraud_flags_late_report`; `test_screen_fraud_flags_loss_near_inception`; `test_screen_fraud_never_auto_denies`; `test_screen_fraud_recall_on_seeded_labels_above_0_7`; `test_required_authority_boundaries` (1,999 → auto, 2,000 → adjuster, 10,001 → senior_adjuster, 25,001 → manager, any SIU referral → siu); `test_reason_codes_exclude_sex`; `test_fairness_report_four_fifths_rule_known_example`.
+- Task 5: `test_claim_decision_route_runs_coverage_then_fraud_then_risk`; `test_siu_referral_forces_siu_approval_regardless_of_amount`; `test_denied_coverage_skips_risk_and_goes_to_writer_with_clause_id`.
+- Task 7/8: golden set adds 8 claim-decision cases with expected authority and expected fraud flag; report adds STP rate, escalation rate, fraud precision/recall, authority-routing accuracy.
+- Task 11: `docs/GOVERNANCE.md` includes the fairness table, reason-code example, and the honest-limits paragraph.
 
 ## Self-Review
 

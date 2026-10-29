@@ -12,3 +12,4 @@ mlflow.db
 .local_cache/
 .DS_Store
 data/generated/
+*.egg-info/

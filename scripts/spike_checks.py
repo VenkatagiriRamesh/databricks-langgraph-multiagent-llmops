@@ -98,9 +98,7 @@ def uc_model_alias(cfg):
             model, name='model', input_example=X[:2], registered_model_name=name
         )
     client = MlflowClient()
-    version = client.get_latest_versions(name)[0].version if hasattr(
-        client, 'get_latest_versions'
-    ) else '1'
+    version = client.search_model_versions(f"name='{name}'")[0].version
     client.set_registered_model_alias(name, 'champion', version)
     mlflow.sklearn.load_model(f'models:/{name}@champion')
     return True, f'registered {name} v{version}, alias champion loads ({info.model_uri})'

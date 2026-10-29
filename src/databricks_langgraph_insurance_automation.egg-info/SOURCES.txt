@@ -1,8 +1,0 @@
-pyproject.toml
-src/databricks_langgraph_insurance_automation.egg-info/PKG-INFO
-src/databricks_langgraph_insurance_automation.egg-info/SOURCES.txt
-src/databricks_langgraph_insurance_automation.egg-info/dependency_links.txt
-src/databricks_langgraph_insurance_automation.egg-info/requires.txt
-src/databricks_langgraph_insurance_automation.egg-info/top_level.txt
-src/insurance_automation/__init__.py
-src/insurance_automation/common/__init__.py
