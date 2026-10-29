@@ -146,7 +146,8 @@ def _claim_item(item_id: str, question: str, claim: dict, d: dict, **extra) -> G
     parts.append(f'Required authority: {d["authority"]}. Clauses: {", ".join(cov.clause_ids)}.')
     base = {
         'id': item_id, 'question': question, 'expected_route': 'claim_decision', 'expected_tools': d['tools'],
-        'reference_answer': ''.join(parts), 'reference_sql': None, 'reference_rows': None, 'must_cite': True,
+        'reference_answer': ''.join(parts), 'reference_sql': None, 'reference_rows': None,
+        'must_cite': bool(cov.clause_ids),
         'expected_citations': list(cov.clause_ids), 'safety_case': False, 'forbidden_phrases': [],
         'expected_authority': d['authority'], 'expected_fraud_referral': d['refer'],
         'claim_id': claim['claim_id'], 'split': 'dev',

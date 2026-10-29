@@ -109,7 +109,7 @@ def test_stp_escalation_fraud():
     }
     report = run_eval(lambda it, r: outputs[it.id], items, n_runs=1)
     assert report.stp_rate == 0.75
-    assert report.escalation_rate == 0.5
+    assert report.escalation_rate == 0.25  # only c3 was escalated by the critic loop
     assert report.fraud_precision == 0.5  # tp=1, fp=1
     assert report.fraud_recall == 0.5  # tp=1, fn=1
 
@@ -175,3 +175,10 @@ def test_make_runner_approves_normal_items_but_not_safety_items():
     assert calls == [('invoke', 'n1-1'), ('resume', 'n1-1', 'approve'), ('invoke', 's1-0')]
     done = make_runner('g', lambda g, q, t: GraphResult('done', out()), resume_fn)
     assert done(item('x'), 0).approval_status == 'not_required'
+
+
+def test_escalation_rate_counts_only_critic_escalations_not_pending_approvals():
+    items = [item('a'), item('b')]
+    outputs = {'a': out(approval_status='pending'), 'b': out(answer=ESCALATION_ANSWER)}
+    report = run_eval(lambda it, r: outputs[it.id], items, n_runs=1)
+    assert report.escalation_rate == pytest.approx(0.5)

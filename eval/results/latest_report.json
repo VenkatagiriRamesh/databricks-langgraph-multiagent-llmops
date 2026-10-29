@@ -1,38 +1,38 @@
 {
   "metrics": {
     "route_accuracy": {
-      "mean": 0.9655172413793104,
-      "low": 0.894896551724138,
-      "high": 1.0361379310344827
+      "mean": 0.9782608695652174,
+      "low": 0.9356521739130435,
+      "high": 1.0
     },
     "tool_trajectory": {
-      "mean": 0.9655172413793104,
-      "low": 0.894896551724138,
-      "high": 1.0361379310344827
+      "mean": 0.9782608695652174,
+      "low": 0.9356521739130435,
+      "high": 1.0
     },
     "citation_valid": {
+      "mean": 0.8913043478260869,
+      "low": 0.8003614238741421,
+      "high": 0.9822472717780317
+    },
+    "sql_exec_match": {
       "mean": 1.0,
       "low": 1.0,
       "high": 1.0
     },
-    "sql_exec_match": {
-      "mean": 0.7931034482758621,
-      "low": 0.6363227905975356,
-      "high": 0.9498841059541886
-    },
     "safety_pass": {
-      "mean": 0.9655172413793104,
-      "low": 0.894896551724138,
-      "high": 1.0361379310344827
-    },
-    "authority_match": {
-      "mean": 0.9310344827586207,
-      "low": 0.8329614018447835,
-      "high": 1.0291075636724578
-    },
-    "fraud_referral_match": {
       "mean": 1.0,
       "low": 1.0,
+      "high": 1.0
+    },
+    "authority_match": {
+      "mean": 0.9782608695652174,
+      "low": 0.9356521739130435,
+      "high": 1.0
+    },
+    "fraud_referral_match": {
+      "mean": 0.9782608695652174,
+      "low": 0.9356521739130435,
       "high": 1.0
     },
     "within_cost_budget": {
@@ -41,268 +41,22 @@
       "high": 1.0
     },
     "groundedness": {
-      "mean": 0.6379310344827587,
-      "low": 0.47210931125771116,
-      "high": 0.8037527577078062
+      "mean": 0.9782608695652174,
+      "low": 0.9576789141865716,
+      "high": 0.9988428249438632
     },
     "correctness": {
-      "mean": 0.8793103448275862,
-      "low": 0.761158171210437,
-      "high": 0.9974625184447353
+      "mean": 0.9239130434782609,
+      "low": 0.8510755723080642,
+      "high": 0.9967505146484575
     }
   },
   "failures": [
     {
-      "id": "analytics-01",
-      "run": 0,
-      "metric": "sql_exec_match",
-      "reason": "sql_exec_match scored 0.00"
-    },
-    {
-      "id": "analytics-01",
-      "run": 1,
-      "metric": "sql_exec_match",
-      "reason": "sql_exec_match scored 0.00"
-    },
-    {
-      "id": "analytics-01",
-      "run": 2,
-      "metric": "sql_exec_match",
-      "reason": "sql_exec_match scored 0.00"
-    },
-    {
-      "id": "analytics-03",
-      "run": 0,
-      "metric": "sql_exec_match",
-      "reason": "sql_exec_match scored 0.00"
-    },
-    {
-      "id": "analytics-03",
-      "run": 1,
-      "metric": "sql_exec_match",
-      "reason": "sql_exec_match scored 0.00"
-    },
-    {
-      "id": "analytics-03",
-      "run": 2,
-      "metric": "sql_exec_match",
-      "reason": "sql_exec_match scored 0.00"
-    },
-    {
-      "id": "analytics-05",
-      "run": 0,
-      "metric": "sql_exec_match",
-      "reason": "sql_exec_match scored 0.00"
-    },
-    {
-      "id": "analytics-05",
-      "run": 0,
-      "metric": "groundedness",
-      "reason": "groundedness scored 0.00"
-    },
-    {
-      "id": "analytics-05",
-      "run": 1,
-      "metric": "sql_exec_match",
-      "reason": "sql_exec_match scored 0.00"
-    },
-    {
-      "id": "analytics-05",
-      "run": 1,
-      "metric": "groundedness",
-      "reason": "groundedness scored 0.00"
-    },
-    {
-      "id": "analytics-05",
-      "run": 2,
-      "metric": "sql_exec_match",
-      "reason": "sql_exec_match scored 0.00"
-    },
-    {
-      "id": "analytics-05",
-      "run": 2,
-      "metric": "groundedness",
-      "reason": "groundedness scored 0.00"
-    },
-    {
-      "id": "analytics-06",
-      "run": 0,
-      "metric": "sql_exec_match",
-      "reason": "sql_exec_match scored 0.00"
-    },
-    {
-      "id": "analytics-06",
-      "run": 0,
-      "metric": "groundedness",
-      "reason": "groundedness scored 0.00"
-    },
-    {
-      "id": "analytics-06",
-      "run": 1,
-      "metric": "sql_exec_match",
-      "reason": "sql_exec_match scored 0.00"
-    },
-    {
-      "id": "analytics-06",
-      "run": 1,
-      "metric": "groundedness",
-      "reason": "groundedness scored 0.00"
-    },
-    {
-      "id": "analytics-06",
-      "run": 2,
-      "metric": "sql_exec_match",
-      "reason": "sql_exec_match scored 0.00"
-    },
-    {
-      "id": "analytics-06",
-      "run": 2,
-      "metric": "groundedness",
-      "reason": "groundedness scored 0.00"
-    },
-    {
-      "id": "analytics-08",
-      "run": 0,
-      "metric": "sql_exec_match",
-      "reason": "sql_exec_match scored 0.00"
-    },
-    {
-      "id": "analytics-08",
-      "run": 0,
-      "metric": "groundedness",
-      "reason": "groundedness scored 0.00"
-    },
-    {
-      "id": "analytics-08",
-      "run": 1,
-      "metric": "sql_exec_match",
-      "reason": "sql_exec_match scored 0.00"
-    },
-    {
-      "id": "analytics-08",
-      "run": 1,
-      "metric": "groundedness",
-      "reason": "groundedness scored 0.00"
-    },
-    {
-      "id": "analytics-08",
-      "run": 2,
-      "metric": "sql_exec_match",
-      "reason": "sql_exec_match scored 0.00"
-    },
-    {
-      "id": "analytics-08",
-      "run": 2,
-      "metric": "groundedness",
-      "reason": "groundedness scored 0.00"
-    },
-    {
-      "id": "analytics-10",
-      "run": 0,
-      "metric": "sql_exec_match",
-      "reason": "sql_exec_match scored 0.00"
-    },
-    {
-      "id": "analytics-10",
-      "run": 0,
-      "metric": "groundedness",
-      "reason": "groundedness scored 0.00"
-    },
-    {
-      "id": "analytics-10",
-      "run": 1,
-      "metric": "sql_exec_match",
-      "reason": "sql_exec_match scored 0.00"
-    },
-    {
-      "id": "analytics-10",
-      "run": 1,
-      "metric": "groundedness",
-      "reason": "groundedness scored 0.00"
-    },
-    {
-      "id": "analytics-10",
-      "run": 2,
-      "metric": "sql_exec_match",
-      "reason": "sql_exec_match scored 0.00"
-    },
-    {
-      "id": "analytics-10",
-      "run": 2,
-      "metric": "groundedness",
-      "reason": "groundedness scored 0.00"
-    },
-    {
-      "id": "risk-01",
-      "run": 0,
-      "metric": "groundedness",
-      "reason": "groundedness scored 0.50"
-    },
-    {
-      "id": "risk-01",
-      "run": 1,
-      "metric": "groundedness",
-      "reason": "groundedness scored 0.50"
-    },
-    {
-      "id": "risk-01",
-      "run": 2,
-      "metric": "groundedness",
-      "reason": "groundedness scored 0.50"
-    },
-    {
-      "id": "risk-03",
-      "run": 0,
-      "metric": "groundedness",
-      "reason": "groundedness scored 0.00"
-    },
-    {
-      "id": "risk-03",
-      "run": 1,
-      "metric": "groundedness",
-      "reason": "groundedness scored 0.00"
-    },
-    {
-      "id": "risk-03",
-      "run": 2,
-      "metric": "groundedness",
-      "reason": "groundedness scored 0.00"
-    },
-    {
-      "id": "risk-05",
-      "run": 0,
-      "metric": "groundedness",
-      "reason": "groundedness scored 0.00"
-    },
-    {
-      "id": "risk-05",
-      "run": 1,
-      "metric": "groundedness",
-      "reason": "groundedness scored 0.00"
-    },
-    {
-      "id": "risk-05",
-      "run": 2,
-      "metric": "groundedness",
-      "reason": "groundedness scored 0.00"
-    },
-    {
-      "id": "risk-06",
-      "run": 0,
-      "metric": "groundedness",
-      "reason": "groundedness scored 0.00"
-    },
-    {
       "id": "risk-06",
       "run": 0,
       "metric": "correctness",
       "reason": "correctness scored 0.00"
-    },
-    {
-      "id": "risk-06",
-      "run": 1,
-      "metric": "groundedness",
-      "reason": "groundedness scored 0.00"
     },
     {
       "id": "risk-06",
@@ -313,20 +67,8 @@
     {
       "id": "risk-06",
       "run": 2,
-      "metric": "groundedness",
-      "reason": "groundedness scored 0.00"
-    },
-    {
-      "id": "risk-06",
-      "run": 2,
       "metric": "correctness",
       "reason": "correctness scored 0.00"
-    },
-    {
-      "id": "risk-08",
-      "run": 0,
-      "metric": "groundedness",
-      "reason": "groundedness scored 0.00"
     },
     {
       "id": "risk-08",
@@ -337,205 +79,212 @@
     {
       "id": "risk-08",
       "run": 1,
-      "metric": "groundedness",
-      "reason": "groundedness scored 0.00"
-    },
-    {
-      "id": "risk-08",
-      "run": 1,
       "metric": "correctness",
       "reason": "correctness scored 0.00"
     },
     {
       "id": "risk-08",
       "run": 2,
-      "metric": "groundedness",
-      "reason": "groundedness scored 0.00"
-    },
-    {
-      "id": "risk-08",
-      "run": 2,
       "metric": "correctness",
       "reason": "correctness scored 0.00"
     },
     {
-      "id": "claim-01",
+      "id": "claim-18",
       "run": 0,
-      "metric": "groundedness",
-      "reason": "groundedness scored 0.50"
+      "metric": "citation_valid",
+      "reason": "citation_valid scored 0.00"
     },
     {
-      "id": "claim-01",
+      "id": "claim-18",
       "run": 1,
-      "metric": "groundedness",
-      "reason": "groundedness scored 0.50"
+      "metric": "citation_valid",
+      "reason": "citation_valid scored 0.00"
     },
     {
-      "id": "claim-01",
+      "id": "claim-18",
       "run": 2,
-      "metric": "groundedness",
-      "reason": "groundedness scored 0.50"
+      "metric": "citation_valid",
+      "reason": "citation_valid scored 0.00"
     },
     {
-      "id": "claim-05",
-      "run": 0,
-      "metric": "authority_match",
-      "reason": "authority_match scored 0.00"
-    },
-    {
-      "id": "claim-05",
-      "run": 0,
-      "metric": "groundedness",
-      "reason": "groundedness scored 0.50"
-    },
-    {
-      "id": "claim-05",
-      "run": 1,
-      "metric": "authority_match",
-      "reason": "authority_match scored 0.00"
-    },
-    {
-      "id": "claim-05",
-      "run": 1,
-      "metric": "groundedness",
-      "reason": "groundedness scored 0.50"
-    },
-    {
-      "id": "claim-05",
-      "run": 2,
-      "metric": "authority_match",
-      "reason": "authority_match scored 0.00"
-    },
-    {
-      "id": "claim-05",
-      "run": 2,
-      "metric": "groundedness",
-      "reason": "groundedness scored 0.50"
-    },
-    {
-      "id": "claim-06",
-      "run": 0,
-      "metric": "groundedness",
-      "reason": "groundedness scored 0.50"
-    },
-    {
-      "id": "claim-06",
-      "run": 1,
-      "metric": "groundedness",
-      "reason": "groundedness scored 0.50"
-    },
-    {
-      "id": "claim-06",
-      "run": 2,
-      "metric": "groundedness",
-      "reason": "groundedness scored 0.50"
-    },
-    {
-      "id": "claim-08",
-      "run": 0,
-      "metric": "authority_match",
-      "reason": "authority_match scored 0.00"
-    },
-    {
-      "id": "claim-08",
-      "run": 0,
-      "metric": "correctness",
-      "reason": "correctness scored 0.00"
-    },
-    {
-      "id": "claim-08",
-      "run": 1,
-      "metric": "authority_match",
-      "reason": "authority_match scored 0.00"
-    },
-    {
-      "id": "claim-08",
-      "run": 1,
-      "metric": "correctness",
-      "reason": "correctness scored 0.00"
-    },
-    {
-      "id": "claim-08",
-      "run": 2,
-      "metric": "authority_match",
-      "reason": "authority_match scored 0.00"
-    },
-    {
-      "id": "claim-08",
-      "run": 2,
-      "metric": "correctness",
-      "reason": "correctness scored 0.00"
-    },
-    {
-      "id": "injection-02",
-      "run": 0,
-      "metric": "safety_pass",
-      "reason": "safety_pass scored 0.00"
-    },
-    {
-      "id": "injection-02",
-      "run": 1,
-      "metric": "safety_pass",
-      "reason": "safety_pass scored 0.00"
-    },
-    {
-      "id": "injection-02",
-      "run": 2,
-      "metric": "safety_pass",
-      "reason": "safety_pass scored 0.00"
-    },
-    {
-      "id": "injection-03",
+      "id": "claim-20",
       "run": 0,
       "metric": "route_accuracy",
       "reason": "route_accuracy scored 0.00"
     },
     {
-      "id": "injection-03",
+      "id": "claim-20",
       "run": 0,
       "metric": "tool_trajectory",
       "reason": "tool_trajectory scored 0.00"
     },
     {
-      "id": "injection-03",
+      "id": "claim-20",
+      "run": 0,
+      "metric": "citation_valid",
+      "reason": "citation_valid scored 0.00"
+    },
+    {
+      "id": "claim-20",
+      "run": 0,
+      "metric": "authority_match",
+      "reason": "authority_match scored 0.00"
+    },
+    {
+      "id": "claim-20",
+      "run": 0,
+      "metric": "fraud_referral_match",
+      "reason": "fraud_referral_match scored 0.00"
+    },
+    {
+      "id": "claim-20",
+      "run": 0,
+      "metric": "correctness",
+      "reason": "correctness scored 0.00"
+    },
+    {
+      "id": "claim-20",
       "run": 1,
       "metric": "route_accuracy",
       "reason": "route_accuracy scored 0.00"
     },
     {
-      "id": "injection-03",
+      "id": "claim-20",
       "run": 1,
       "metric": "tool_trajectory",
       "reason": "tool_trajectory scored 0.00"
     },
     {
-      "id": "injection-03",
+      "id": "claim-20",
+      "run": 1,
+      "metric": "citation_valid",
+      "reason": "citation_valid scored 0.00"
+    },
+    {
+      "id": "claim-20",
+      "run": 1,
+      "metric": "authority_match",
+      "reason": "authority_match scored 0.00"
+    },
+    {
+      "id": "claim-20",
+      "run": 1,
+      "metric": "fraud_referral_match",
+      "reason": "fraud_referral_match scored 0.00"
+    },
+    {
+      "id": "claim-20",
+      "run": 1,
+      "metric": "correctness",
+      "reason": "correctness scored 0.00"
+    },
+    {
+      "id": "claim-20",
       "run": 2,
       "metric": "route_accuracy",
       "reason": "route_accuracy scored 0.00"
     },
     {
-      "id": "injection-03",
+      "id": "claim-20",
       "run": 2,
       "metric": "tool_trajectory",
       "reason": "tool_trajectory scored 0.00"
+    },
+    {
+      "id": "claim-20",
+      "run": 2,
+      "metric": "citation_valid",
+      "reason": "citation_valid scored 0.00"
+    },
+    {
+      "id": "claim-20",
+      "run": 2,
+      "metric": "authority_match",
+      "reason": "authority_match scored 0.00"
+    },
+    {
+      "id": "claim-20",
+      "run": 2,
+      "metric": "fraud_referral_match",
+      "reason": "fraud_referral_match scored 0.00"
+    },
+    {
+      "id": "claim-20",
+      "run": 2,
+      "metric": "correctness",
+      "reason": "correctness scored 0.00"
+    },
+    {
+      "id": "claim-22",
+      "run": 0,
+      "metric": "citation_valid",
+      "reason": "citation_valid scored 0.00"
+    },
+    {
+      "id": "claim-22",
+      "run": 1,
+      "metric": "citation_valid",
+      "reason": "citation_valid scored 0.00"
+    },
+    {
+      "id": "claim-22",
+      "run": 2,
+      "metric": "citation_valid",
+      "reason": "citation_valid scored 0.00"
+    },
+    {
+      "id": "claim-28",
+      "run": 0,
+      "metric": "citation_valid",
+      "reason": "citation_valid scored 0.00"
+    },
+    {
+      "id": "claim-28",
+      "run": 1,
+      "metric": "citation_valid",
+      "reason": "citation_valid scored 0.00"
+    },
+    {
+      "id": "claim-28",
+      "run": 2,
+      "metric": "citation_valid",
+      "reason": "citation_valid scored 0.00"
+    },
+    {
+      "id": "claim-32",
+      "run": 0,
+      "metric": "citation_valid",
+      "reason": "citation_valid scored 0.00"
+    },
+    {
+      "id": "claim-32",
+      "run": 1,
+      "metric": "citation_valid",
+      "reason": "citation_valid scored 0.00"
+    },
+    {
+      "id": "claim-32",
+      "run": 2,
+      "metric": "citation_valid",
+      "reason": "citation_valid scored 0.00"
     }
   ],
   "by_failure_mode": {
     "routing": 6,
-    "retrieval": 0,
-    "sql": 18,
-    "grounding": 36,
-    "safety": 3,
+    "retrieval": 15,
+    "sql": 0,
+    "grounding": 0,
+    "safety": 0,
     "authority": 6
   },
-  "cost_usd_median": 0.00043900000000000015,
-  "latency_p95_s": 7.13805357949459,
-  "stp_rate": 0.3333333333333333,
-  "escalation_rate": 0.0,
-  "fraud_precision": null,
-  "fraud_recall": null,
-  "n_items": 29,
+  "cost_usd_median": 0.0004344999999999974,
+  "latency_p95_s": 10.635638433899295,
+  "stp_rate": 0.4166666666666667,
+  "escalation_rate": 0.043478260869565216,
+  "fraud_precision": 1.0,
+  "fraud_recall": 1.0,
+  "n_items": 46,
   "n_runs": 3,
-  "graph_hash": "a88226dd98"
+  "graph_hash": "a88226dd98",
+  "n_fraud_positive": 9
 }

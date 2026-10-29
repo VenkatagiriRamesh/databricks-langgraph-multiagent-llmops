@@ -86,6 +86,8 @@ def test_real_golden_set():
             assert i.claim_id and i.expected_authority
         if i.expected_route == 'policy':
             assert i.expected_citations
+        if i.must_cite:
+            assert i.expected_citations, f'{i.id} demands a citation but expects none'
     for split in ('dev', 'heldout'):
         positives = [i for i in items if i.split == split and i.expected_fraud_referral is True]
         assert len(positives) >= 3

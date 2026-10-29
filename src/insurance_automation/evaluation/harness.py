@@ -168,8 +168,7 @@ def _aggregate(items, n_runs, graph_hash, done) -> EvalReport:
     }
     claims = [o for i, o in outputs if i.expected_route == 'claim_decision']
     stp = sum(o.approval_status == 'not_required' for o in claims) / len(claims) if claims else 0.0
-    escalated = sum(o.approval_status == 'pending' or o.answer == ESCALATION_ANSWER
-                    for _, o in outputs)
+    escalated = sum(o.answer == ESCALATION_ANSWER for _, o in outputs)
     tp = fp = fn = 0
     n_pos = 0
     for i, o in outputs:

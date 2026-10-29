@@ -247,3 +247,24 @@ def test_writer_prompt_describes_non_smoker_reason_without_inversion():
     assert 'bmi: 36.2 (raises risk)' in prompt
     assert 'region: southwest (raises risk)' in prompt
     assert 'being a smoker' not in prompt
+
+
+def test_supervisor_sends_any_question_naming_a_claim_id_to_claim_decision_without_llm():
+    ctx, _, llm, _ = make_ctx({'supervisor': 'policy'})
+    q = 'Help me prepare the file note for C00791: coverage, fraud screen, approval route.'
+    out = nodes.supervisor({'question': q}, ctx)
+    assert out == {'route': 'claim_decision', 'claim_id': 'C00791'}
+    assert llm.calls == []
+
+
+def test_writer_appends_clause_footer_when_draft_cites_nothing():
+    ctx, _, _, _ = make_ctx({'writer': 'Covered; payable 4000.00 after the deductible.'})
+    out = nodes.writer({'question': 'q', 'evidence_ids': ['COV-02', 'DED-01']}, ctx)
+    assert out['citations'] == ['COV-02', 'DED-01']
+    assert out['draft'].endswith('Clauses relied on: COV-02, DED-01.')
+
+
+def test_writer_does_not_add_footer_without_evidence_ids():
+    ctx, _, _, _ = make_ctx({'writer': 'Total claims: 1000.'})
+    out = nodes.writer({'question': 'q', 'evidence_ids': []}, ctx)
+    assert out['citations'] == [] and 'Clauses relied on' not in out['draft']

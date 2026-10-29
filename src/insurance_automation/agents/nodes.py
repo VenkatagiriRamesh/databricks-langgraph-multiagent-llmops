@@ -65,14 +65,16 @@ def supervisor(state: ClaimsState, ctx: NodeContext) -> dict:
     question = state.get('question', '')
     if not question.strip():
         return {'route': 'refuse'}
+    match = CLAIM_ID.search(question)
+    claim_id = match.group(0) if match else None
+    if claim_id:  # a named claim always goes through the deterministic decision pipeline
+        return {'route': 'claim_decision', 'claim_id': claim_id}
     text = call_llm(ctx, 'supervisor', question, ctx.prompts.get('supervisor'))
     word = text.strip().lower().strip('.,!"\'` \n')
     route = word if word in ROUTES else 'refuse'
-    match = CLAIM_ID.search(question)
-    claim_id = match.group(0) if match else None
-    if route == 'claim_decision' and claim_id is None:
+    if route == 'claim_decision':  # no claim id to decide on
         route = 'refuse'
-    return {'route': route, 'claim_id': claim_id}
+    return {'route': route, 'claim_id': None}
 
 
 def refuse(state: ClaimsState, ctx: NodeContext) -> dict:
@@ -196,10 +198,13 @@ def writer(state: ClaimsState, ctx: NodeContext) -> dict:
         retries += 1
         prompt += f'\nA reviewer rejected your previous draft: {state.get("critic_reason", "")}'
     draft = call_llm(ctx, 'writer', prompt, ctx.prompts.get('writer')).strip()
+    evidence_ids = list(dict.fromkeys(state.get('evidence_ids', [])))
+    if evidence_ids and not CITATION_ID.search(draft):  # the audit trail must not depend on wording
+        draft += f'\n\nClauses relied on: {", ".join(evidence_ids)}.'
     citations = list(dict.fromkeys(CITATION_ID.findall(draft)))
     return {
         'draft': draft, 'citations': citations, 'retries': retries,
-        'evidence_ids': list(dict.fromkeys(state.get('evidence_ids', []))),
+        'evidence_ids': evidence_ids,
     }
 
 
