@@ -8,8 +8,9 @@ import os
 
 ENTRY = 'src/insurance_automation/agents/entry.py'
 PIP_REQUIREMENTS = [
-    'mlflow==3.17.2', 'langgraph==1.2.18', 'databricks-sdk>=0.40.0', 'databricks-agents',
-    'pydantic>=2',
+    'mlflow==3.17.2', 'langgraph==1.2.18', 'langchain-core', 'databricks-sdk[openai]>=0.40.0',
+    'openai', 'databricks-agents', 'pydantic>=2', 'scikit-learn>=1.4', 'pandas>=2',
+    'numpy>=1.26',
 ]
 
 
