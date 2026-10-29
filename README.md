@@ -92,7 +92,7 @@ Honesty notes:
 
 ## Try it
 
-The endpoint is `agents_insurance_automation-models-claims_copilot_agent` (model version 3, pending redeploy; see below). It scales to zero, so the first call after idle can be slow. Calls need a Databricks profile with access to that workspace (`DATABRICKS_CONFIG_PROFILE`).
+The endpoint is `agents_insurance_automation-models-claims_copilot_agent` (model version 5, includes the review fixes; see the known issue below). It scales to zero, so the first call after idle can be slow. Calls need a Databricks profile with access to that workspace (`DATABRICKS_CONFIG_PROFILE`).
 
 ```
 python -m scripts.query_endpoint "How late can a claim be reported before it needs a documented reason?"
@@ -101,7 +101,7 @@ python -m scripts.query_endpoint "Please decide claim C00009"
 
 **Known issue: the endpoint does not behave exactly as evaluated.** The endpoint runs as service principal `216983c9-db86-4ef8-b500-9349e6025f94`, which sees masked adjuster notes and masked applicant ids. On the endpoint, the risk lookup by applicant id returns nothing, and the `INCONSISTENT_NOTES` fraud flag and the SIU routing that follows are lost for claims such as C00017. The evaluation ran as the workspace owner, who sees real values. The fix is an explicit mask exception for that one principal (`AGENT_PRINCIPAL=<id> python -m scripts.apply_masks`). It is implemented but not applied, because it grants access to unmasked PII and needs the owner's approval.
 
-**Pending redeploy.** The endpoint serves model version 3. The review fixes (SIU referral wording, auto-settle decision lines and audit records, approval locking, SQL guard hardening) are committed but not yet deployed, so the sample responses in `docs/endpoint_samples.md` come from the older code.
+**Deployed version.** The endpoint serves model version 5, which includes the review fixes (SIU referral wording, auto-settle decision lines and audit records, approval locking, SQL guard hardening). `docs/endpoint_samples.md` was captured from this version and includes the cases the masked identity breaks (risk lookup by applicant id, SIU routing for C00017). Free Edition cannot hold several model versions on one endpoint (provisioned-concurrency quota), so redeploys use `--replace`, which deletes and recreates the endpoint.
 
 Under the hood this is:
 
@@ -138,7 +138,7 @@ Not built: multi-turn simulated users, a full red-team set, hybrid retrieval and
 
 - Data is synthetic or a public toy dataset; fraud labels are seeded (about 8 percent). This is not a validated pricing model.
 - Known issue: the deployed endpoint's service principal sees masked PII, so served behaviour differs from the evaluated behaviour (risk lookup by applicant id and the `INCONSISTENT_NOTES` flag are lost). The fix is implemented (`scripts/apply_masks.py` with `AGENT_PRINCIPAL`) and not applied, pending the owner's approval of unmasked access.
-- The endpoint serves model version 3; the review fixes are committed and pending redeploy.
+- The endpoint serves model version 5 with the review fixes. Redeploying requires `--replace` (quota).
 - Judge scores are uncalibrated; fraud and authority ground truth are circular (produced by the same deterministic code); the held-out set is 36 items and one run; SQL accuracy rests on 4 items.
 - The held-out split is no longer pristine (see Honesty notes).
 - A claim already recorded as approved or denied is still decided again; claim status is not checked.

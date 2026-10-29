@@ -48,7 +48,7 @@ Measured results: [see docs/EVALUATION.md] (golden set 86 items, 50 dev and 36 h
 
 ## Scope
 
-Now: supervisor graph with SQL analyst, policy RAG (TF-IDF), coverage checker, fraud screener, risk scorer, writer, critic and approval gate; UC tables, masks and functions; registered risk model with fairness audit; prompt registry; custom evaluation harness with judges, confidence intervals and a release gate; one scale-to-zero serving endpoint, deployed and verified on 2026-10-29 (model version 3; review fixes committed, pending redeploy). The endpoint's service principal sees masked PII, so served behaviour differs from the evaluated behaviour until an owner-approved mask exception is applied (see GOVERNANCE.md).
+Now: supervisor graph with SQL analyst, policy RAG (TF-IDF), coverage checker, fraud screener, risk scorer, writer, critic and approval gate; UC tables, masks and functions; registered risk model with fairness audit; prompt registry; custom evaluation harness with judges, confidence intervals and a release gate; one scale-to-zero serving endpoint, deployed and verified on 2026-10-29 (model version 5; review fixes committed, pending redeploy). The endpoint's service principal sees masked PII, so served behaviour differs from the evaluated behaviour until an owner-approved mask exception is applied (see GOVERNANCE.md).
 
 Roadmap (not built): multi-turn simulated users, full red-team set, hybrid retrieval with reranking, model routing, agent memory, feedback flywheel, online scoring.
 

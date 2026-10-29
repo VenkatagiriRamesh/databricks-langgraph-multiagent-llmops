@@ -55,4 +55,4 @@ Agentic AI & LLMOps: LangGraph, multi-agent orchestration, MLflow tracing and Ge
 - **Uncalibrated judges.** Same model family as the agent, no human labels, no kappa.
 - **Masked-identity divergence (known issue).** The endpoint's service principal (216983c9-db86-4ef8-b500-9349e6025f94) sees masked notes and applicant ids, so the risk lookup returns nothing and the INCONSISTENT_NOTES flag and SIU routing for claims such as C00017 are lost. Evaluation ran as the workspace owner. The fix (`scripts/apply_masks.py` with AGENT_PRINCIPAL) is implemented but not applied: it grants access to unmasked PII and needs the owner's approval.
 - **Per-process approval state.** Pending approvals live in one endpoint process's memory and the approving role is not authenticated.
-- **Pending redeploy.** The endpoint serves model version 3; review fixes are committed but not deployed.
+- **Single-version endpoint.** Free Edition's provisioned-concurrency quota rejected a v4 update that kept old versions (found live); the fix was a tested `--replace` redeploy. The endpoint now serves version 5.

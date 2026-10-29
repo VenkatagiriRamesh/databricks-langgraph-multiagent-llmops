@@ -78,7 +78,7 @@ EU AI Act: AI systems used for risk assessment and pricing in life and health in
 - The risk model is not a validated pricing model. Its label is a charge quantile.
 - On Free Edition the role in an approval reply is not authenticated: anyone who can call the endpoint and knows a run id can reply as any role.
 - Pending approvals are held per endpoint process. A restart loses pending runs (decisions already made persist in the log table).
-- The approval log table (`eval.approval_decisions`) is created by DDL in the deploy script (`scripts/deploy_agent_endpoint.py`). The endpoint is deployed (model version 3, deployed 2026-10-29); audit-table writes are best-effort.
+- The approval log table (`eval.approval_decisions`) is created by DDL in the deploy script (`scripts/deploy_agent_endpoint.py`). The endpoint is deployed (model version 5, deployed 2026-10-29 with the review fixes); audit-table writes are best-effort.
 - Fraud and authority ground truth in the golden set were produced by the same deterministic code the agent uses, so the evaluation checks pass-through, not detection. Authority is separately checked against a hand-computed 18-row table.
 - Judge scores are uncalibrated (no human labels, no kappa).
 - PII masking and the access groups were exercised on one workspace only.
