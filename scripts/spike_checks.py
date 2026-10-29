@@ -146,8 +146,8 @@ def genai_builtin_judge(cfg):
 
 @check
 def responses_agent_and_deploy_api(cfg):
-    from mlflow.pyfunc import ResponsesAgent  # noqa: F401
     from databricks import agents
+    from mlflow.pyfunc import ResponsesAgent  # noqa: F401
 
     return True, f'ResponsesAgent importable; agents.deploy present={hasattr(agents, "deploy")}'
 
@@ -172,8 +172,8 @@ def cleanup(cfg):
     ):
         try:
             run_sql(stmt, cfg.warehouse_id)
-        except Exception:  # noqa: BLE001
-            pass
+        except Exception as exc:  # noqa: BLE001
+            print(f'cleanup skipped for {stmt!r}: {exc}')
     return True, 'spike objects cleanup attempted (prompt spike_prompt left; delete in UI if wanted)'
 
 
@@ -189,9 +189,9 @@ def main() -> int:
     print(f'{"check":42} {"ok":5} detail')
     for fn in CHECKS:
         ok, detail = fn(cfg)
-        print(f'{fn.__name__:42} {str(ok):5} {detail}')
+        print(f'{fn.__name__:42} {ok!s:5} {detail}')
     ok, detail = cleanup(cfg)
-    print(f'{"cleanup":42} {str(ok):5} {detail}')
+    print(f'{"cleanup":42} {ok!s:5} {detail}')
     return 0
 
 
