@@ -4,8 +4,10 @@ import pytest
 from sklearn.metrics import roc_auc_score
 
 from insurance_automation.tools.risk_model import (
+    ReasonCode,
     RiskScore,
     band_for,
+    describe_reason,
     fairness_report,
     train_risk_model,
 )
@@ -101,3 +103,24 @@ def test_fairness_report_known_example_passes():
     rep = fairness_report(StubModel(None), rows_for({'male': (8, 10), 'female': (7, 10)}), 'sex')
     assert rep.disparate_impact_ratio == pytest.approx(0.875)
     assert rep.passes_four_fifths is True
+
+
+APPLICANT = {'age': 29, 'bmi': 36.2, 'children': 1, 'smoker': 'no', 'region': 'southwest'}
+
+
+@pytest.mark.parametrize('code,applicant,expected', [
+    (ReasonCode('smoker', 'decreases', -0.5), {'smoker': 'no'}, 'smoker status: no (lowers risk)'),
+    (ReasonCode('smoker', 'increases', 0.9), {'smoker': 'yes'}, 'smoker status: yes (raises risk)'),
+    (ReasonCode('bmi', 'increases', 0.4), APPLICANT, 'bmi: 36.2 (raises risk)'),
+    (ReasonCode('bmi', 'decreases', -0.3), {'bmi': 21.0}, 'bmi: 21.0 (lowers risk)'),
+    (ReasonCode('age', 'decreases', -0.2), APPLICANT, 'age: 29 (lowers risk)'),
+    (ReasonCode('region_southwest', 'increases', 0.1), APPLICANT, 'region: southwest (raises risk)'),
+    (ReasonCode('region_northeast', 'decreases', -0.1), APPLICANT, 'region: southwest (lowers risk)'),
+])
+def test_describe_reason(code, applicant, expected):
+    assert describe_reason(code, applicant) == expected
+
+
+def test_describe_reason_mismatch_never_names_the_other_region():
+    text = describe_reason(ReasonCode('region_northeast', 'decreases', -0.1), APPLICANT)
+    assert 'northeast' not in text

@@ -197,3 +197,26 @@ def test_every_llm_call_is_recorded_with_its_node_name():
 def test_local_prompt_store_unknown_name_raises_clear_error():
     with pytest.raises(KeyError, match='unknown prompt'):
         LocalPromptStore().get('nope')
+
+
+def test_writer_prompt_describes_non_smoker_reason_without_inversion():
+    class Tools_(FakeTools):
+        def tools(self):
+            t = super().tools()
+            return Tools(
+                **{**t.__dict__, 'get_applicant': lambda aid: {
+                    'applicant_id': aid, 'age': 29, 'bmi': 36.2, 'children': 0,
+                    'smoker': 'no', 'region': 'southwest'},
+                   'score_risk': lambda f: RiskScore(0.3, 'low', [
+                       ReasonCode('smoker', 'decreases', -0.8), ReasonCode('bmi', 'increases', 0.4),
+                       ReasonCode('region_southwest', 'increases', 0.1)])},
+            )
+    ctx, _, llm, _ = make_ctx({'writer': 'ok'}, Tools_())
+    state = {'question': 'q', 'claim': CLAIM, 'tools_called': []}
+    state.update(nodes.risk_scorer(state, ctx))
+    nodes.writer(state, ctx)
+    prompt = llm.calls[-1]['prompt']
+    assert 'smoker status: no (lowers risk)' in prompt
+    assert 'bmi: 36.2 (raises risk)' in prompt
+    assert 'region: southwest (raises risk)' in prompt
+    assert 'being a smoker' not in prompt

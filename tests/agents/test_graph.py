@@ -25,6 +25,8 @@ def test_graph_pauses_at_approval_and_resume_approve_completes():
     assert done.output.tools_called == ['check_coverage', 'screen_fraud', 'score_risk']
     assert 'COV-01' in done.output.citations and done.output.hit_ids[:1] == ['COV-01']
     assert done.output.fraud_referred is False
+    assert done.output.answer.startswith('Covered under COV-01 and DED-01.\n\nDecision: APPROVED by')
+    assert 'adjuster for claim C00001; payable ' in done.output.answer
 
 
 def test_resume_reject_returns_rejection_answer():
@@ -40,7 +42,7 @@ def test_resume_edit_uses_edit_text():
     g = build_graph(ctx)
     invoke(g, 'Decide claim C00001', 't3')
     res = resume(g, 't3', 'edit', 'Pay 4000 instead.')
-    assert res.output.approval_status == 'edited' and res.output.answer == 'Pay 4000 instead.'
+    assert res.output.approval_status == 'edited' and res.output.answer == 'Pay 4000 instead.\n\nDecision: EDITED by adjuster.'
 
 
 def test_resume_unknown_thread_raises():

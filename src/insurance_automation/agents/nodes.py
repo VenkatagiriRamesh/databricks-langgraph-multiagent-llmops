@@ -18,7 +18,7 @@ from insurance_automation.tools.authority import required_authority
 from insurance_automation.tools.coverage import check_coverage
 from insurance_automation.tools.fraud import screen_fraud
 from insurance_automation.tools.retrieval import PolicyHit
-from insurance_automation.tools.risk_model import RiskScore
+from insurance_automation.tools.risk_model import ReasonCode, RiskScore, describe_reason
 from insurance_automation.tools.sql_guard import UnsafeSQLError, validate_select_only
 
 CLAIM_ID = re.compile(r'C\d{5}')
@@ -145,7 +145,15 @@ def risk_scorer(state: ClaimsState, ctx: NodeContext) -> dict:
     if applicant is None:
         return {'risk': None, 'refusal_reason': 'applicant not found'}
     score = ctx.tools.score_risk(applicant)
-    return {'risk': asdict(score), 'tools_called': _called(state, TOOL_SCORE_RISK)}
+    risk = asdict(score)
+    risk['reason_text'] = [describe_reason(c, applicant) for c in score.reason_codes]
+    return {'risk': risk, 'tools_called': _called(state, TOOL_SCORE_RISK)}
+
+
+def _risk_drivers(risk: dict) -> list[str]:
+    if 'reason_text' in risk:
+        return risk['reason_text']
+    return [describe_reason(ReasonCode(**c), {}) for c in risk.get('reason_codes', [])]
 
 
 def _evidence_text(state: ClaimsState) -> str:
@@ -168,7 +176,7 @@ def _evidence_text(state: ClaimsState) -> str:
         )
     if state.get('risk'):
         r = state['risk']
-        parts.append(f'Risk band: {r["band"]}; reason codes: {r["reason_codes"]}')
+        parts.append(f'Risk band: {r["band"]}; risk drivers: {_risk_drivers(r)}')
     if state.get('authority'):
         parts.append(f'Required authority: {state["authority"]}')
     if 'hits' in state:

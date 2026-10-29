@@ -26,8 +26,16 @@ def approval_gate(state: ClaimsState) -> dict:
         'reason_codes': [r['feature'] for r in risk.get('reason_codes', [])],
     })
     decision = resume_value.get('decision')
+    role, claim_id = state['authority'], state.get('claim_id')
     if decision == 'approve':
-        return {'approval_status': 'approved', 'answer': state.get('draft', '')}
+        amount = float((state.get('coverage') or {}).get('payable_amount', 0.0))
+        answer = (
+            f'{state.get("draft", "")}\n\nDecision: APPROVED by {role} for claim {claim_id}; '
+            f'payable {amount:.2f}.'
+        )
+        return {'approval_status': 'approved', 'answer': answer}
     if decision == 'edit':
-        return {'approval_status': 'edited', 'answer': resume_value.get('edit_text', '')}
-    return {'approval_status': 'rejected', 'answer': REJECTED_ANSWER}
+        answer = f'{resume_value.get("edit_text", "")}\n\nDecision: EDITED by {role}.'
+        return {'approval_status': 'edited', 'answer': answer}
+    answer = f'{REJECTED_ANSWER} Claim {claim_id}, rejected by {role}.'
+    return {'approval_status': 'rejected', 'answer': answer}

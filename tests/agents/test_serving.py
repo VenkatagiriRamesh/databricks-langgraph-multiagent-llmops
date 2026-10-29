@@ -63,7 +63,7 @@ def test_followup_edit_uses_text():
     agent, log = make_agent()
     _, run_id = pending_run(agent)
     out = text_of(agent.predict(req(f"edit {run_id}: Pay 4000 instead.")))
-    assert out == 'Pay 4000 instead.'
+    assert out == 'Pay 4000 instead.\n\nDecision: EDITED by adjuster.'
     assert log.records[0].decision == 'edit' and log.records[0].edit_text == 'Pay 4000 instead.'
 
 

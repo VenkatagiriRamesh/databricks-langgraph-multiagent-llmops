@@ -19,15 +19,25 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument('--report-out', default='eval/results/latest_report.json')
     args = parser.parse_args(argv)
 
+    import hashlib
+    import json
+
     import mlflow
 
     from insurance_automation.agents.graph import build_graph, invoke, resume
+    from insurance_automation.agents.prompts import DEFAULT_PROMPTS, RegistryPromptStore
+    from insurance_automation.common.config import load_config
     from insurance_automation.evaluation.golden import load_golden
     from insurance_automation.evaluation.harness import run_eval
     from insurance_automation.evaluation.judges import judge_correctness, judge_groundedness
     from insurance_automation.runtime import build_live_context
 
-    ctx = build_live_context()
+    cfg = load_config(require_warehouse=True)
+    mlflow.set_tracking_uri('databricks')
+    user = os.environ.get('USER_EMAIL', 'venkatagiriramesh11@gmail.com')
+    mlflow.set_experiment(f'/Users/{user}/insurance_automation_eval')
+    prompts = RegistryPromptStore(cfg.schema('eval'))
+    ctx = build_live_context(cfg, prompts=prompts)
     graph = build_graph(ctx)
     items = load_golden(args.golden, split=args.split)
 
@@ -44,7 +54,11 @@ def main(argv: list[str] | None = None) -> int:
             'correctness': judge_correctness(ctx.llm, item, output).score,
         }
 
-    graph_hash = getattr(graph, 'graph_hash', 'dev')
+    # Results are cached per graph_hash, so it must change whenever behaviour can change.
+    fingerprint = json.dumps(
+        {'model': cfg.fm_model, 'prompts': {n: prompts.get(n) for n in sorted(DEFAULT_PROMPTS)}},
+        sort_keys=True)
+    graph_hash = hashlib.sha256(fingerprint.encode()).hexdigest()[:10]
     os.makedirs(os.path.dirname(args.report_out) or '.', exist_ok=True)
     results = os.path.join(os.path.dirname(args.report_out) or '.', f'results_{args.split}.jsonl')
     report = run_eval(runner, items, n_runs=args.runs, judge=judge, results_path=results,

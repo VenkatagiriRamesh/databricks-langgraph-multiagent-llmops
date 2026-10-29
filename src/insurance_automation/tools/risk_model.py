@@ -22,6 +22,15 @@ class ReasonCode:
     contribution: float
 
 
+def describe_reason(code: ReasonCode, applicant: dict) -> str:
+    """Human text for a reason code that states the applicant's ACTUAL value and the direction."""
+    effect = 'raises risk' if code.direction == 'increases' else 'lowers risk'
+    if code.feature.startswith('region_'):
+        return f'region: {applicant.get("region", "unknown")} ({effect})'
+    label = 'smoker status' if code.feature == 'smoker' else code.feature
+    return f'{label}: {applicant.get(code.feature, "unknown")} ({effect})'
+
+
 @dataclass(frozen=True)
 class RiskScore:
     probability: float

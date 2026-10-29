@@ -47,8 +47,12 @@ def test_gate_interrupts_with_payload_then_applies_decision(decision, status):
     assert payload['fraud_flags'] == ['X'] and payload['reason_codes'] == ['age']
     final = graph.invoke(Command(resume={'decision': decision, 'edit_text': 'Edited.'}), cfg)
     assert final['approval_status'] == status
-    expected = {'approve': 'Pay 4500.', 'edit': 'Edited.'}.get(decision)
+    expected = {
+        'approve': 'Pay 4500.\n\nDecision: APPROVED by adjuster for claim C00001; payable 4500.00.',
+        'edit': 'Edited.\n\nDecision: EDITED by adjuster.',
+    }.get(decision)
     if expected:
         assert final['answer'] == expected
     else:
         assert 'rejected' in final['answer'].lower()
+        assert 'C00001' in final['answer'] and 'adjuster' in final['answer']
