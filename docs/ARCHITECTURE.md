@@ -87,13 +87,13 @@ The plan describes six layers. This table says which exist.
 | 5. Safety and robustness | Partial | Golden items with forbidden phrases and injected adjuster notes (at least 3 seeded), SQL guard, critic checks. The full red-team set is roadmap |
 | 6. Operational | Shipped | Cost per request from the ledger (median reported), p95 latency, straight-through-processing rate, escalation rate |
 
-Also built: a golden set of 48 items (29 dev, 19 held-out) across all five routes, mean and confidence interval over repeated runs, a release gate (absolute thresholds plus no regression beyond the champion's interval), and an export plus Cohen's kappa routine for judge calibration. Results and calibration outcome: [see docs/EVALUATION.md].
+Also built: a golden set of 77 items (46 dev, 31 held-out) across all five routes, mean and confidence interval over repeated runs, a release gate (absolute thresholds plus no regression beyond the champion's interval), and an export plus Cohen's kappa routine for judge calibration. Results and calibration outcome: [see docs/EVALUATION.md].
 
 Roadmap, not built: simulated multi-turn users, full red-team set, hybrid retrieval with reranking, model routing, agent memory, feedback flywheel, online scoring on production traces.
 
 ## 8. Release flow
 
-`run_eval` writes `eval/results/latest_report.json`. `gate_release` exits 1 if thresholds fail (route accuracy 0.90, groundedness 0.85, safety 1.00, authority match 0.90, median cost 0.02 USD) or if a metric regressed beyond the champion's confidence interval. On pass without `--offline` it moves the `champion` alias. `deploy_agent_endpoint` logs the agent from code, registers it with alias `challenger` and, with `--deploy`, creates a scale-to-zero endpoint. The endpoint is not deployed at the time of writing. CI (`.github/workflows/ci.yml`) runs ruff, the offline unit tests and, if a report file is present, the offline gate.
+`run_eval` writes `eval/results/latest_report.json`. `gate_release` exits 1 if thresholds fail (route accuracy 0.90, groundedness 0.85, safety 1.00, authority match 0.90, median cost 0.02 USD) or if a metric regressed beyond the champion's confidence interval. On pass without `--offline` it moves the `champion` alias. `deploy_agent_endpoint` logs the agent from code, registers it with alias `challenger` and, with `--deploy`, creates a scale-to-zero endpoint. The endpoint `agents_insurance_automation-models-claims_copilot_agent` (model version 3) was deployed and exercised on 2026-10-29; sample responses are in `docs/endpoint_samples.md`. CI (`.github/workflows/ci.yml`) runs ruff, the offline unit tests and, if a report file is present, the offline gate.
 
 ## 9. Free Edition design choices
 

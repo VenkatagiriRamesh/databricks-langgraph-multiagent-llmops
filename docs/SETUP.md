@@ -40,9 +40,9 @@ Run from the repository root.
 | 7 | `python -m scripts.build_golden_set` | Writes `eval/golden_set.jsonl` |
 | 8 | `python -m scripts.run_eval --split dev` (and `--split heldout`) | Report at `eval/results/latest_report.json`, metrics in MLflow |
 | 9 | `python -m scripts.gate_release --report eval/results/latest_report.json --model-name <catalog>.models.claims_copilot_agent --model-version <n>` | Gate decision; sets `champion` on pass. Add `--offline` to check without setting an alias |
-| 10 | `python -m scripts.deploy_agent_endpoint --deploy` | Registers the agent as `challenger`, creates a scale-to-zero endpoint. Omit `--deploy` to register only |
+| 10 | `python -m scripts.deploy_agent_endpoint --deploy` | Registers the agent as `challenger`, creates a scale-to-zero endpoint. Omit `--deploy` to register only. Query it with `python -m scripts.query_endpoint "<question>"` |
 
-`resources/jobs.yml` defines a job chaining the scripts. It has not been verified end to end, and its `gate_release` task passes no arguments although the script requires `--report`; use the local script order above.
+`resources/jobs.yml` defines a job chaining the scripts. The bundle validates (`databricks bundle validate`), but the job has not been run end to end; its `gate_release` task runs in `--offline` mode (decision only, no alias change). Use the local script order above for the verified path.
 
 ## Token note
 

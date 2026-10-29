@@ -48,7 +48,7 @@ Measured results: [see docs/EVALUATION.md].
 
 ## Scope
 
-Now: supervisor graph with SQL analyst, policy RAG (TF-IDF), coverage checker, fraud screener, risk scorer, writer, critic and approval gate; UC tables, masks and functions; registered risk model with fairness audit; prompt registry; custom evaluation harness with judges, confidence intervals and a release gate; deploy script for one scale-to-zero endpoint (not yet deployed).
+Now: supervisor graph with SQL analyst, policy RAG (TF-IDF), coverage checker, fraud screener, risk scorer, writer, critic and approval gate; UC tables, masks and functions; registered risk model with fairness audit; prompt registry; custom evaluation harness with judges, confidence intervals and a release gate; one scale-to-zero serving endpoint, deployed and verified on 2026-10-29 (model version 3).
 
 Roadmap (not built): multi-turn simulated users, full red-team set, hybrid retrieval with reranking, model routing, agent memory, feedback flywheel, online scoring.
 

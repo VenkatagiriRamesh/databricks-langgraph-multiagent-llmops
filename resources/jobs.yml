@@ -48,7 +48,7 @@ resources:
           environment_key: default
           spark_python_task:
             python_file: ${workspace.file_path}/scripts/job_entry.py
-            parameters: ["--warehouse-id", "{{job.parameters.warehouse_id}}", "--catalog", "{{job.parameters.catalog}}", "--fm-model", "{{job.parameters.fm_model}}", "--script", "gate_release", "--", "--report", "eval/results/latest_report.json"]
+            parameters: ["--warehouse-id", "{{job.parameters.warehouse_id}}", "--catalog", "{{job.parameters.catalog}}", "--fm-model", "{{job.parameters.fm_model}}", "--script", "gate_release", "--", "--report", "eval/results/latest_report.json", "--offline"]
         - task_key: deploy_agent_endpoint
           depends_on:
             - task_key: gate_release

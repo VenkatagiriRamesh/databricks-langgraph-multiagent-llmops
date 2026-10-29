@@ -76,5 +76,5 @@ EU AI Act: AI systems used for risk assessment and pricing in life and health in
 - The risk model is not a validated pricing model. Its label is a charge quantile.
 - On Free Edition the role in an approval reply is not authenticated: anyone who can call the endpoint and knows a run id can reply as any role.
 - Pending approvals are held per endpoint process. A restart loses pending runs (decisions already made persist in the log table).
-- The approval log table (`eval.approval_decisions`) is created by the serving entrypoint at load time, so it exists only once the agent has been loaded or deployed; the endpoint is not deployed yet.
+- The approval log table (`eval.approval_decisions`) is created by the serving entrypoint at load time, so it exists only once the agent has been loaded or deployed. The endpoint was deployed on 2026-10-29; audit-table writes are best-effort.
 - PII masking and the access groups were exercised on one workspace only.
