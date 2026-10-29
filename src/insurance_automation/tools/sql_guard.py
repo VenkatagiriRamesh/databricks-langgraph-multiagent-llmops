@@ -29,7 +29,7 @@ def validate_select_only(sql: str, allowed_schema: str) -> str:
         raise UnsafeSQLError('only SELECT statements are allowed')
     bad = _FORBIDDEN.intersection(words)
     if bad:
-        raise UnsafeSQLError(f'forbidden keyword: {sorted(bad)[0]}')
+        raise UnsafeSQLError(f'forbidden keyword: {min(bad)}')
     prefix = allowed_schema.lower() + '.'
     for ref in re.findall(r'\b(?:from|join)\s+([`\w.]+)', scrubbed, flags=re.IGNORECASE):
         if not ref.replace('`', '').lower().startswith(prefix):
