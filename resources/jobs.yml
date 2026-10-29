@@ -19,29 +19,40 @@ resources:
         - task_key: bootstrap_data
           environment_key: default
           spark_python_task:
-            python_file: ${workspace.file_path}/scripts/bootstrap_data.py
+            python_file: ${workspace.file_path}/scripts/job_entry.py
+            parameters: ["--warehouse-id", "{{job.parameters.warehouse_id}}", "--catalog", "{{job.parameters.catalog}}", "--fm-model", "{{job.parameters.fm_model}}", "--script", "bootstrap_data"]
         - task_key: train_register_model
           depends_on:
             - task_key: bootstrap_data
           environment_key: default
           spark_python_task:
-            python_file: ${workspace.file_path}/scripts/train_register_model.py
-        - task_key: run_eval
+            python_file: ${workspace.file_path}/scripts/job_entry.py
+            parameters: ["--warehouse-id", "{{job.parameters.warehouse_id}}", "--catalog", "{{job.parameters.catalog}}", "--fm-model", "{{job.parameters.fm_model}}", "--script", "train_register_model"]
+        - task_key: register_prompts
           depends_on:
             - task_key: train_register_model
           environment_key: default
           spark_python_task:
-            python_file: ${workspace.file_path}/scripts/run_eval.py
+            python_file: ${workspace.file_path}/scripts/job_entry.py
+            parameters: ["--warehouse-id", "{{job.parameters.warehouse_id}}", "--catalog", "{{job.parameters.catalog}}", "--fm-model", "{{job.parameters.fm_model}}", "--script", "register_prompts"]
+        - task_key: run_eval
+          depends_on:
+            - task_key: register_prompts
+          environment_key: default
+          spark_python_task:
+            python_file: ${workspace.file_path}/scripts/job_entry.py
+            parameters: ["--warehouse-id", "{{job.parameters.warehouse_id}}", "--catalog", "{{job.parameters.catalog}}", "--fm-model", "{{job.parameters.fm_model}}", "--script", "run_eval", "--", "--split", "heldout", "--runs", "3"]
         - task_key: gate_release
           depends_on:
             - task_key: run_eval
           environment_key: default
           spark_python_task:
-            python_file: ${workspace.file_path}/scripts/gate_release.py
+            python_file: ${workspace.file_path}/scripts/job_entry.py
+            parameters: ["--warehouse-id", "{{job.parameters.warehouse_id}}", "--catalog", "{{job.parameters.catalog}}", "--fm-model", "{{job.parameters.fm_model}}", "--script", "gate_release", "--", "--report", "eval/results/latest_report.json"]
         - task_key: deploy_agent_endpoint
           depends_on:
             - task_key: gate_release
           environment_key: default
           spark_python_task:
-            python_file: ${workspace.file_path}/scripts/deploy_agent_endpoint.py
-            parameters: ["--deploy"]
+            python_file: ${workspace.file_path}/scripts/job_entry.py
+            parameters: ["--warehouse-id", "{{job.parameters.warehouse_id}}", "--catalog", "{{job.parameters.catalog}}", "--fm-model", "{{job.parameters.fm_model}}", "--script", "deploy_agent_endpoint", "--", "--deploy"]
