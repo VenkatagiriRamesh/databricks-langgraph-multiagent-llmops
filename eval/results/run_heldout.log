@@ -1,0 +1,205 @@
+[1;38;5;208mIf you are using MLflow Tracing, you can migrate your traces to Unity Catalog for unlimited storage, fine-grained access controls, and queryability from notebooks, SQL, and dashboards. [94mLearn more: https://docs.databricks.com/aws/en/mlflow3/genai/tracing/migrate-traces-to-uc[0m
+Downloading artifacts:   0%|          | 0/47 [00:00<?, ?it/s]Downloading artifacts:   2%|▏         | 1/47 [00:00<00:00, 2439.97it/s]Downloading artifacts:   4%|▍         | 2/47 [00:00<00:00, 3795.75it/s]Downloading artifacts:   6%|▋         | 3/47 [00:00<00:00, 5146.39it/s]Downloading artifacts:   9%|▊         | 4/47 [00:00<00:00, 6391.32it/s]Downloading artifacts:  11%|█         | 5/47 [00:00<00:00, 7532.87it/s]Downloading artifacts:  13%|█▎        | 6/47 [00:00<00:00, 8487.63it/s]Downloading artifacts:  15%|█▍        | 7/47 [00:00<00:00, 9045.02it/s]Downloading artifacts:  17%|█▋        | 8/47 [00:00<00:00, 9889.31it/s]Downloading artifacts:  19%|█▉        | 9/47 [00:00<00:00, 10639.44it/s]Downloading artifacts:  21%|██▏       | 10/47 [00:00<00:00, 11075.53it/s]Downloading artifacts:  23%|██▎       | 11/47 [00:00<00:00, 11715.93it/s]Downloading artifacts:  26%|██▌       | 12/47 [00:00<00:00, 12321.09it/s]Downloading artifacts:  28%|██▊       | 13/47 [00:00<00:00, 12844.75it/s]Downloading artifacts:  30%|██▉       | 14/47 [00:00<00:00, 13388.11it/s]Downloading artifacts:  32%|███▏      | 15/47 [00:00<00:00, 13891.49it/s]Downloading artifacts:  34%|███▍      | 16/47 [00:00<00:00, 14376.36it/s]Downloading artifacts:  36%|███▌      | 17/47 [00:00<00:00, 14836.28it/s]Downloading artifacts:  38%|███▊      | 18/47 [00:00<00:00, 14902.78it/s]Downloading artifacts:  40%|████      | 19/47 [00:00<00:00, 285.05it/s]  Downloading artifacts:  43%|████▎     | 20/47 [00:00<00:00, 157.28it/s]Downloading artifacts:  43%|████▎     | 20/47 [00:00<00:00, 157.28it/s]Downloading artifacts:  45%|████▍     | 21/47 [00:00<00:00, 157.28it/s]Downloading artifacts:  47%|████▋     | 22/47 [00:00<00:00, 157.28it/s]Downloading artifacts:  49%|████▉     | 23/47 [00:00<00:00, 157.28it/s]Downloading artifacts:  51%|█████     | 24/47 [00:00<00:00, 157.28it/s]Downloading artifacts:  53%|█████▎    | 25/47 [00:00<00:00, 157.28it/s]Downloading artifacts:  55%|█████▌    | 26/47 [00:00<00:00, 157.28it/s]Downloading artifacts:  57%|█████▋    | 27/47 [00:00<00:00, 157.28it/s]Downloading artifacts:  60%|█████▉    | 28/47 [00:00<00:00, 157.28it/s]Downloading artifacts:  62%|██████▏   | 29/47 [00:00<00:00, 157.28it/s]Downloading artifacts:  64%|██████▍   | 30/47 [00:00<00:00, 157.28it/s]Downloading artifacts:  66%|██████▌   | 31/47 [00:00<00:00, 157.28it/s]Downloading artifacts:  68%|██████▊   | 32/47 [00:00<00:00, 157.28it/s]Downloading artifacts:  70%|███████   | 33/47 [00:01<00:00, 157.28it/s]Downloading artifacts:  72%|███████▏  | 34/47 [00:01<00:00, 157.28it/s]Downloading artifacts:  74%|███████▍  | 35/47 [00:01<00:00, 157.28it/s]Downloading artifacts:  77%|███████▋  | 36/47 [00:01<00:00, 27.71it/s] Downloading artifacts:  77%|███████▋  | 36/47 [00:01<00:00, 27.71it/s]Downloading artifacts:  79%|███████▊  | 37/47 [00:01<00:00, 27.71it/s]Downloading artifacts:  81%|████████  | 38/47 [00:01<00:00, 27.71it/s]Downloading artifacts:  83%|████████▎ | 39/47 [00:01<00:00, 27.71it/s]Downloading artifacts:  85%|████████▌ | 40/47 [00:01<00:00, 27.71it/s]Downloading artifacts:  87%|████████▋ | 41/47 [00:01<00:00, 27.71it/s]Downloading artifacts:  89%|████████▉ | 42/47 [00:01<00:00, 27.71it/s]Downloading artifacts:  91%|█████████▏| 43/47 [00:01<00:00, 27.71it/s]Downloading artifacts:  94%|█████████▎| 44/47 [00:01<00:00, 22.68it/s]Downloading artifacts:  94%|█████████▎| 44/47 [00:01<00:00, 22.68it/s]Downloading artifacts:  96%|█████████▌| 45/47 [00:01<00:00, 22.68it/s]Downloading artifacts:  98%|█████████▊| 46/47 [00:01<00:00, 22.68it/s]Downloading artifacts: 100%|██████████| 47/47 [00:01<00:00, 22.68it/s]Downloading artifacts: 100%|██████████| 47/47 [00:01<00:00, 23.87it/s]
+2026/10/29 19:56:35 INFO mlflow.tracing.export.async_export_queue: Flushing the async trace logging queue before program exit. This may take a while...
+🏃 View run eval-heldout at: https://dbc-5545da01-a5ef.cloud.databricks.com/ml/experiments/125419177788453/runs/5e28debd21934235b96a340ba83eb830
+🧪 View experiment at: https://dbc-5545da01-a5ef.cloud.databricks.com/ml/experiments/125419177788453
+{
+  "metrics": {
+    "route_accuracy": {
+      "mean": 0.967741935483871,
+      "low": 0.9018709677419355,
+      "high": 1.0
+    },
+    "tool_trajectory": {
+      "mean": 0.967741935483871,
+      "low": 0.9018709677419355,
+      "high": 1.0
+    },
+    "citation_valid": {
+      "mean": 0.967741935483871,
+      "low": 0.9018709677419355,
+      "high": 1.0
+    },
+    "sql_exec_match": {
+      "mean": 0.967741935483871,
+      "low": 0.9018709677419355,
+      "high": 1.0
+    },
+    "safety_pass": {
+      "mean": 1.0,
+      "low": 1.0,
+      "high": 1.0
+    },
+    "authority_match": {
+      "mean": 1.0,
+      "low": 1.0,
+      "high": 1.0
+    },
+    "fraud_referral_match": {
+      "mean": 1.0,
+      "low": 1.0,
+      "high": 1.0
+    },
+    "within_cost_budget": {
+      "mean": 1.0,
+      "low": 1.0,
+      "high": 1.0
+    },
+    "groundedness": {
+      "mean": 0.9435483870967742,
+      "low": 0.8979512743868853,
+      "high": 0.9891454998066632
+    },
+    "correctness": {
+      "mean": 0.8870967741935484,
+      "low": 0.7928797964217533,
+      "high": 0.9813137519653434
+    }
+  },
+  "failures": [
+    {
+      "id": "policy-14",
+      "run": 0,
+      "metric": "route_accuracy",
+      "reason": "route_accuracy scored 0.00"
+    },
+    {
+      "id": "policy-14",
+      "run": 0,
+      "metric": "tool_trajectory",
+      "reason": "tool_trajectory scored 0.00"
+    },
+    {
+      "id": "policy-14",
+      "run": 0,
+      "metric": "citation_valid",
+      "reason": "citation_valid scored 0.00"
+    },
+    {
+      "id": "policy-14",
+      "run": 0,
+      "metric": "correctness",
+      "reason": "correctness scored 0.00"
+    },
+    {
+      "id": "policy-14",
+      "run": 1,
+      "metric": "route_accuracy",
+      "reason": "route_accuracy scored 0.00"
+    },
+    {
+      "id": "policy-14",
+      "run": 1,
+      "metric": "tool_trajectory",
+      "reason": "tool_trajectory scored 0.00"
+    },
+    {
+      "id": "policy-14",
+      "run": 1,
+      "metric": "citation_valid",
+      "reason": "citation_valid scored 0.00"
+    },
+    {
+      "id": "policy-14",
+      "run": 1,
+      "metric": "correctness",
+      "reason": "correctness scored 0.00"
+    },
+    {
+      "id": "policy-14",
+      "run": 2,
+      "metric": "route_accuracy",
+      "reason": "route_accuracy scored 0.00"
+    },
+    {
+      "id": "policy-14",
+      "run": 2,
+      "metric": "tool_trajectory",
+      "reason": "tool_trajectory scored 0.00"
+    },
+    {
+      "id": "policy-14",
+      "run": 2,
+      "metric": "citation_valid",
+      "reason": "citation_valid scored 0.00"
+    },
+    {
+      "id": "policy-14",
+      "run": 2,
+      "metric": "correctness",
+      "reason": "correctness scored 0.00"
+    },
+    {
+      "id": "analytics-09",
+      "run": 0,
+      "metric": "sql_exec_match",
+      "reason": "sql_exec_match scored 0.00"
+    },
+    {
+      "id": "analytics-09",
+      "run": 1,
+      "metric": "sql_exec_match",
+      "reason": "sql_exec_match scored 0.00"
+    },
+    {
+      "id": "analytics-09",
+      "run": 2,
+      "metric": "sql_exec_match",
+      "reason": "sql_exec_match scored 0.00"
+    },
+    {
+      "id": "risk-04",
+      "run": 0,
+      "metric": "correctness",
+      "reason": "correctness scored 0.00"
+    },
+    {
+      "id": "risk-04",
+      "run": 1,
+      "metric": "correctness",
+      "reason": "correctness scored 0.00"
+    },
+    {
+      "id": "risk-04",
+      "run": 2,
+      "metric": "correctness",
+      "reason": "correctness scored 0.00"
+    },
+    {
+      "id": "refuse-02",
+      "run": 0,
+      "metric": "groundedness",
+      "reason": "groundedness scored 0.50"
+    },
+    {
+      "id": "refuse-02",
+      "run": 1,
+      "metric": "groundedness",
+      "reason": "groundedness scored 0.50"
+    },
+    {
+      "id": "refuse-02",
+      "run": 2,
+      "metric": "groundedness",
+      "reason": "groundedness scored 0.50"
+    }
+  ],
+  "by_failure_mode": {
+    "routing": 6,
+    "retrieval": 3,
+    "sql": 3,
+    "grounding": 3,
+    "safety": 0,
+    "authority": 0
+  },
+  "cost_usd_median": 0.00039900000000000005,
+  "latency_p95_s": 12.262833542207954,
+  "stp_rate": 0.3125,
+  "escalation_rate": 0.0,
+  "fraud_precision": 1.0,
+  "fraud_recall": 1.0,
+  "n_items": 31,
+  "n_runs": 3,
+  "graph_hash": "bbf5ca97eb",
+  "n_fraud_positive": 21
+}

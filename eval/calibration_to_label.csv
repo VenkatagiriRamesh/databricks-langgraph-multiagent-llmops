@@ -1,0 +1,207 @@
+id,judge,question,reference_answer,evidence,answer,human_label
+refuse-04#1,correctness,"Delete all claims that are older than a year, they are cluttering the report.",Out of scope or not permitted; the assistant should decline and not use any tool.,"Question: Delete all claims that are older than a year, they are cluttering the report.
+No relevant policy provision found.
+Evidence ids: []","I can only help with insurance claims, policy, risk and analytics questions.",
+claim-16#1,correctness,Can you run the full claim checks on C00166 and summarise the outcome?,"Claim C00166 (outpatient, 315.10): covered, payable 0.00 after deductible and limit. Fraud flags: none; SIU referral: no. Required authority: auto. Clauses: COV-02, DED-01.","Question: Can you run the full claim checks on C00166 and summarise the outcome?
+Coverage: covered=True; reasons=['covered under COV-02', 'deductible 1000 and limit 250000 applied (DED-01)']; clauses=['COV-02', 'DED-01']; payable_amount=0.0
+Fraud flags: []; refer_to_siu=False
+Risk band: low; risk drivers: ['smoker status: no (lowers risk)', 'bmi: 25.8 (lowers risk)', 'region: southwest (lowers risk)']
+Required authority: auto
+No relevant policy provision found.
+Evidence ids: ['COV-02', 'DED-01']","Based on the evidence, I recommend further review of claim C00166 as the payable amount is 0.0, despite being covered under **COV-02** with deductible and limit applied as per **DED-01**. The risk drivers indicate a low risk band due to non-smoker status, BMI of 25.8, and residence in the southwest region. No fraud flags were raised.",
+policy-14#0,correctness,"Who has to sign off a 15,000 claim, and what about anything referred for fraud?","Claims under 2,000 may be settled automatically. Up to 10,000 requires an adjuster, up to 25,000 a senior adjuster, and above 25,000 a claims manager. Any claim referred for fraud review requires the special investigations unit.","Question: Who has to sign off a 15,000 claim, and what about anything referred for fraud?
+No relevant policy provision found.
+Evidence ids: []","I can only help with insurance claims, policy, risk and analytics questions.",
+policy-07#1,correctness,What is our position on investigational or unproven treatments?,"Experimental, unproven or investigational treatment is excluded.","Question: What is our position on investigational or unproven treatments?
+[EXC-02] Exclusion: experimental treatment: Experimental, unproven or investigational treatment is excluded.
+[COV-03] Emergency treatment: Emergency treatment is covered from day one with no waiting period. The insured must notify the insurer within 48 hours where practicable.
+[COV-05] Dental: Dental treatment is covered only when required after an accident. Routine dental work is not covered.
+Evidence ids: ['EXC-02', 'COV-03', 'COV-05']","Our position is that investigational or unproven treatments are excluded, as stated in [EXC-02].",
+policy-09#2,correctness,How long are pre-existing conditions excluded after the policy starts?,Conditions diagnosed or treated before inception are excluded for the first twelve months.,"Question: How long are pre-existing conditions excluded after the policy starts?
+[EXC-04] Exclusion: pre-existing conditions: Conditions diagnosed or treated before inception are excluded for the first twelve months.
+[COV-02] Outpatient cover: Outpatient consultations, diagnostics and day procedures are covered after the deductible. Pre-authorisation is not required.
+[COV-01] Inpatient hospital cover: Inpatient admissions, surgery and intensive care are covered up to the policy coverage limit after the deductible is met.
+Evidence ids: ['EXC-04', 'COV-02', 'COV-01']","Pre-existing conditions are excluded for the first twelve months after the policy starts, as stated in [EXC-04].",
+policy-02#2,correctness,A customer wants to see a specialist as an outpatient. Do we need pre-authorisation first?,"Outpatient consultations, diagnostics and day procedures are covered after the deductible. Pre-authorisation is not required.","Question: A customer wants to see a specialist as an outpatient. Do we need pre-authorisation first?
+[COV-02] Outpatient cover: Outpatient consultations, diagnostics and day procedures are covered after the deductible. Pre-authorisation is not required.
+[EXC-04] Exclusion: pre-existing conditions: Conditions diagnosed or treated before inception are excluded for the first twelve months.
+[PRIV-01] Data protection: Personal identifiers and adjuster notes are masked for users without the claims role. Decisions affecting a customer must be explainable and auditable.
+Evidence ids: ['COV-02', 'EXC-04', 'PRIV-01']","Based on [COV-02], pre-authorisation is not required for outpatient consultations. I recommend proceeding without pre-authorisation for the specialist visit as an outpatient.",
+claim-11#1,correctness,"Before I reply to the policyholder, I need the coverage and fraud picture for claim C00058.","Claim C00058 (outpatient, 555.27): covered, payable 0.00 after deductible and limit. Fraud flags: none; SIU referral: no. Required authority: auto. Clauses: COV-02, DED-01.","Question: Before I reply to the policyholder, I need the coverage and fraud picture for claim C00058.
+Coverage: covered=True; reasons=['covered under COV-02', 'deductible 2500 and limit 100000 applied (DED-01)']; clauses=['COV-02', 'DED-01']; payable_amount=0.0
+Fraud flags: []; refer_to_siu=False
+Risk band: low; risk drivers: ['smoker status: no (lowers risk)', 'age: 19 (lowers risk)', 'bmi: 21.755 (lowers risk)']
+Required authority: auto
+No relevant policy provision found.
+Evidence ids: ['COV-02', 'DED-01']","For claim C00058, the coverage picture indicates the claim is covered under **COV-02** with a deductible of 2500 and a limit of 100000 applied as per **DED-01**, resulting in a payable amount of 0.0. The fraud picture shows no flags, and the risk band is low, driven by the policyholder being a non-smoker, aged 19, and having a BMI of 21.755, all of which lower the risk. No policy provision directly addressing the claim's specifics was found. Given the evidence from **COV-02** and **DED-01**, I recommend further review considering the low-risk profile and the applied deductible and limit.",
+analytics-04#1,correctness,How many policies do we have in each product line?,"Result of the reference query: [{'product': 'health_individual', 'policy_count': '574'}, {'product': 'health_family', 'policy_count': '764'}]","Question: How many policies do we have in each product line?
+SQL: SELECT 
+  product, 
+  COUNT(policy_id) AS number_of_policies
+FROM 
+  insurance_automation.curated.policies
+GROUP BY 
+  product LIMIT 200
+Rows: [{'product': 'health_individual', 'number_of_policies': '574'}, {'product': 'health_family', 'number_of_policies': '764'}]
+No relevant policy provision found.
+Evidence ids: []",We have 574 policies in the 'health_individual' product line and 764 policies in the 'health_family' product line.,
+claim-36#1,correctness,"Take a look at C00837 and recommend a decision, including the approval level.","Claim C00837 (outpatient, 665.22): covered, payable 165.22 after deductible and limit. Fraud flags: none; SIU referral: no. Required authority: auto. Clauses: COV-02, DED-01.","Question: Take a look at C00837 and recommend a decision, including the approval level.
+Coverage: covered=True; reasons=['covered under COV-02', 'deductible 500 and limit 250000 applied (DED-01)']; clauses=['COV-02', 'DED-01']; payable_amount=165.22
+Fraud flags: []; refer_to_siu=False
+Risk band: low; risk drivers: ['smoker status: no (lowers risk)', 'age: 23 (lowers risk)', 'bmi: 39.27 (raises risk)']
+Required authority: auto
+No relevant policy provision found.
+Evidence ids: ['COV-02', 'DED-01']","Based on the evidence, I recommend approval at the auto authority level. The claim is covered under **COV-02** with a deductible and limit applied as per **DED-01**, resulting in a payable amount of $165.22. The risk band is low, driven by the insured's non-smoker status and age, although their BMI raises the risk. No fraud flags are present.",
+claim-04#1,correctness,What is the status of the coverage decision for C00017?,"Claim C00017 (inpatient, 7927.31): covered, payable 6927.31 after deductible and limit. Fraud flags: LATE_REPORT, INCONSISTENT_NOTES; SIU referral: yes. Required authority: siu. Clauses: COV-01, DED-01, RPT-01.","Question: What is the status of the coverage decision for C00017?
+Coverage: covered=True; reasons=['covered under COV-01', 'deductible 1000 and limit 250000 applied (DED-01)', 'reported after the 45-day deadline (RPT-01); review advised']; clauses=['COV-01', 'DED-01', 'RPT-01']; payable_amount=6927.31
+Fraud flags: [('LATE_REPORT', 'reported 67 days after the loss'), ('INCONSISTENT_NOTES', 'adjuster notes record unverified or inconsistent documentation')]; refer_to_siu=True
+Risk band: low; risk drivers: ['smoker status: no (lowers risk)', 'age: 56 (raises risk)', 'children: 0 (lowers risk)']
+Required authority: siu
+No relevant policy provision found.
+Evidence ids: ['COV-01', 'DED-01', 'RPT-01']","I recommend review by SIU for C00017 due to fraud flags, including 'LATE_REPORT' and 'INCONSISTENT_NOTES', and the required authority being 'siu'. The coverage decision is covered under the given conditions, with a payable amount of 6927.31. Risk drivers include 'smoker status: no', 'age: 56', and 'children: 0'.
+
+Clauses relied on: COV-01, DED-01, RPT-01.
+
+Decision: APPROVED by siu for claim C00017; payable 6927.31.",
+risk-07#2,correctness,What would the risk score look like for A1157?,"Applicant A1157 is high risk (probability 0.96). Main drivers: smoker increases risk, age increases risk, children decreases risk.","Question: What would the risk score look like for A1157?
+Risk band: high; risk drivers: ['smoker status: yes (raises risk)', 'age: 57 (raises risk)', 'children: 0 (lowers risk)']
+No relevant policy provision found.
+Evidence ids: []","Based on the given risk drivers for A1157, the risk score would be influenced by being a smoker and having an age of 57, both of which raise the risk, but partially offset by having no children, which lowers the risk. Since the risk band is classified as high, it suggests that the raising factors have a more significant impact. No relevant policy provision was found to further adjust this assessment.",
+claim-29#0,correctness,"Pull up C00895: should it be paid, denied or sent to the investigators?","Claim C00895 (dental, 1990.00): covered, payable 0.00 after deductible and limit. Fraud flags: LATE_REPORT, JUST_UNDER_LIMIT, INCONSISTENT_NOTES; SIU referral: yes. Required authority: siu. Clauses: COV-05, DED-01, RPT-01.","Question: Pull up C00895: should it be paid, denied or sent to the investigators?
+Coverage: covered=True; reasons=['covered under COV-05', 'deductible 2500 and limit 100000 applied (DED-01)', 'reported after the 45-day deadline (RPT-01); review advised']; clauses=['COV-05', 'DED-01', 'RPT-01']; payable_amount=0.0
+Fraud flags: [('LATE_REPORT', 'reported 53 days after the loss'), ('JUST_UNDER_LIMIT', 'amount 1990.00 is just under the 2000 authority limit'), ('INCONSISTENT_NOTES', 'adjuster notes record unverified or inconsistent documentation')]; refer_to_siu=True
+Risk band: low; risk drivers: ['smoker status: no (lowers risk)', 'age: 21 (lowers risk)', 'children: 0 (lowers risk)']
+Required authority: siu
+No relevant policy provision found.
+Evidence ids: ['COV-05', 'DED-01', 'RPT-01']","Based on the evidence, I recommend sending C00895 to the investigators due to the presence of fraud flags, including 'LATE_REPORT', 'JUST_UNDER_LIMIT', and 'INCONSISTENT_NOTES', as indicated by refer_to_siu=True.
+
+Clauses relied on: COV-05, DED-01, RPT-01.
+
+Decision: APPROVED by siu for claim C00895; payable 0.00.",
+policy-07#2,correctness,What is our position on investigational or unproven treatments?,"Experimental, unproven or investigational treatment is excluded.","Question: What is our position on investigational or unproven treatments?
+[EXC-02] Exclusion: experimental treatment: Experimental, unproven or investigational treatment is excluded.
+[COV-03] Emergency treatment: Emergency treatment is covered from day one with no waiting period. The insured must notify the insurer within 48 hours where practicable.
+[COV-05] Dental: Dental treatment is covered only when required after an accident. Routine dental work is not covered.
+Evidence ids: ['EXC-02', 'COV-03', 'COV-05']","Our position is that investigational or unproven treatments are excluded, as stated in [EXC-02].",
+refuse-02#0,correctness,hello?,Out of scope or not permitted; the assistant should decline and not use any tool.,"Question: hello?
+No relevant policy provision found.
+Evidence ids: []","I can only help with insurance claims, policy, risk and analytics questions.",
+policy-14#1,correctness,"Who has to sign off a 15,000 claim, and what about anything referred for fraud?","Claims under 2,000 may be settled automatically. Up to 10,000 requires an adjuster, up to 25,000 a senior adjuster, and above 25,000 a claims manager. Any claim referred for fraud review requires the special investigations unit.","Question: Who has to sign off a 15,000 claim, and what about anything referred for fraud?
+No relevant policy provision found.
+Evidence ids: []","I can only help with insurance claims, policy, risk and analytics questions.",
+refuse-02#0,groundedness,hello?,Out of scope or not permitted; the assistant should decline and not use any tool.,"Question: hello?
+No relevant policy provision found.
+Evidence ids: []","I can only help with insurance claims, policy, risk and analytics questions.",
+risk-07#0,groundedness,What would the risk score look like for A1157?,"Applicant A1157 is high risk (probability 0.96). Main drivers: smoker increases risk, age increases risk, children decreases risk.","Question: What would the risk score look like for A1157?
+Risk band: high; risk drivers: ['smoker status: yes (raises risk)', 'age: 57 (raises risk)', 'children: 0 (lowers risk)']
+No relevant policy provision found.
+Evidence ids: []","Based on the given risk drivers for A1157, the risk score would be influenced by being a smoker and having an age of 57, both of which raise the risk, but partially offset by having no children, which lowers the risk. Since the risk band is classified as high, it suggests that the raising factors have a more significant impact. No relevant policy provision was found to further adjust this assessment.",
+refuse-02#2,groundedness,hello?,Out of scope or not permitted; the assistant should decline and not use any tool.,"Question: hello?
+No relevant policy provision found.
+Evidence ids: []","I can only help with insurance claims, policy, risk and analytics questions.",
+policy-04#1,groundedness,Under what conditions do we pay for prescription medication?,Prescribed medication is covered when dispensed on a valid prescription and listed on the formulary.,"Question: Under what conditions do we pay for prescription medication?
+[EXC-04] Exclusion: pre-existing conditions: Conditions diagnosed or treated before inception are excluded for the first twelve months.
+[COV-04] Pharmacy: Prescribed medication is covered when dispensed on a valid prescription and listed on the formulary.
+[SIU-01] Fraud referral: Late reporting, loss shortly after inception, round-number amounts, amounts just under an authority limit and inconsistent documentation are fraud indicators. Indicators justify referral for review, never automatic denial.
+Evidence ids: ['EXC-04', 'COV-04', 'SIU-01']","We recommend covering prescription medication when it is dispensed on a valid prescription and listed on the formulary, as per [COV-04], unless it is for a pre-existing condition diagnosed or treated before inception, which is excluded for the first twelve months, as stated in [EXC-04].",
+analytics-02#2,groundedness,What is the total claimed amount broken down by claim status?,"Result of the reference query: [{'status': 'approved', 'total_amount': '1648481.6'}, {'status': 'denied', 'total_amount': '329638.11'}, {'status': 'open', 'total_amount': '1097733.42'}, {'status': 'review', 'total_amount': '648472.89'}]","Question: What is the total claimed amount broken down by claim status?
+SQL: SELECT 
+  status, 
+  SUM(amount) AS total_claimed_amount
+FROM 
+  insurance_automation.curated.claims
+GROUP BY 
+  status LIMIT 200
+Rows: [{'status': 'approved', 'total_claimed_amount': '1648481.6'}, {'status': 'denied', 'total_claimed_amount': '329638.1100000001'}, {'status': 'open', 'total_claimed_amount': '1097733.42'}, {'status': 'review', 'total_claimed_amount': '648472.8899999999'}]
+No relevant policy provision found.
+Evidence ids: []","The total claimed amount broken down by claim status is as follows: 
+- Approved: $1,648,481.60
+- Denied: $329,638.11
+- Open: $1,097,733.42
+- Review: $648,472.89
+No relevant policy provision was found.",
+claim-31#2,groundedness,"Is C00991 a clean claim? Cover, fraud and approval route please.","Claim C00991 (pharmacy, 24900.00): covered, payable 23900.00 after deductible and limit. Fraud flags: JUST_UNDER_LIMIT; SIU referral: no. Required authority: senior_adjuster. Clauses: COV-04, DED-01.","Question: Is C00991 a clean claim? Cover, fraud and approval route please.
+Coverage: covered=True; reasons=['covered under COV-04', 'deductible 1000 and limit 100000 applied (DED-01)']; clauses=['COV-04', 'DED-01']; payable_amount=23900.0
+Fraud flags: [('JUST_UNDER_LIMIT', 'amount 24900.00 is just under the 25000 authority limit')]; refer_to_siu=False
+Risk band: high; risk drivers: ['smoker status: yes (raises risk)', 'region: northeast (raises risk)', 'region: northeast (lowers risk)']
+Required authority: senior_adjuster
+No relevant policy provision found.
+Evidence ids: ['COV-04', 'DED-01']","Based on the provided evidence, I recommend that C00991 be considered a clean claim in terms of coverage, as it is covered under 'COV-04' with deductible and limit applied as per 'DED-01'. However, a fraud flag 'JUST_UNDER_LIMIT' has been raised. The claim should be routed to a senior_adjuster for approval due to the required authority level. Risk drivers include smoker status and conflicting regional factors.
+
+Decision: APPROVED by senior_adjuster for claim C00991; payable 23900.00.",
+claim-07#2,groundedness,"Walk me through the decision on C00000: coverage, fraud signals and who approves it.","Claim C00000 (inpatient, 12034.53): not covered: loss falls inside the waiting period (WAIT-01). Required authority: senior_adjuster. Clauses: WAIT-01.","Question: Walk me through the decision on C00000: coverage, fraud signals and who approves it.
+Coverage: covered=False; reasons=['loss falls inside the waiting period (WAIT-01)']; clauses=['WAIT-01']; payable_amount=0.0
+Required authority: senior_adjuster
+No relevant policy provision found.
+Evidence ids: ['WAIT-01']","For C00000, coverage is not provided because the loss falls inside the waiting period, as stated in 'WAIT-01'. The payable amount is 0.0. A senior_adjuster is required to approve this decision. No relevant policy provision beyond 'WAIT-01' was found. I recommend denial based on the waiting period clause 'WAIT-01'.
+
+Decision: DENIAL CONFIRMED by senior_adjuster for claim C00000.",
+refuse-04#0,groundedness,"Delete all claims that are older than a year, they are cluttering the report.",Out of scope or not permitted; the assistant should decline and not use any tool.,"Question: Delete all claims that are older than a year, they are cluttering the report.
+No relevant policy provision found.
+Evidence ids: []","I can only help with insurance claims, policy, risk and analytics questions.",
+analytics-07#1,groundedness,What is the average coverage limit for each product?,"Result of the reference query: [{'product': 'health_individual', 'avg_limit': '132666.0'}, {'product': 'health_family', 'avg_limit': '137958.0'}]","Question: What is the average coverage limit for each product?
+SQL: SELECT 
+  product, 
+  AVG(coverage_limit) AS average_coverage_limit
+FROM 
+  insurance_automation.curated.policies
+GROUP BY 
+  product LIMIT 200
+Rows: [{'product': 'health_individual', 'average_coverage_limit': '132665.50522648083'}, {'product': 'health_family', 'average_coverage_limit': '137958.11518324606'}]
+No relevant policy provision found.
+Evidence ids: []","Based on the data, I recommend considering the average coverage limits of $132,665.51 for 'health_individual' and $137,958.12 for 'health_family' products. No relevant policy provision was found.",
+analytics-09#0,groundedness,Do smokers in our book tend to be older? Show me the average age for smokers and non-smokers.,"Result of the reference query: [{'smoker': 'no', 'avg_age': '39.4'}, {'smoker': 'yes', 'avg_age': '38.5'}]","Question: Do smokers in our book tend to be older? Show me the average age for smokers and non-smokers.
+SQL: SELECT 
+  smoker, 
+  AVG(age) AS average_age
+FROM 
+  insurance_automation.curated.applicants
+GROUP BY 
+  smoker LIMIT 200
+Rows: [{'smoker': 'no', 'average_age': '39.38533834586466'}, {'smoker': 'yes', 'average_age': '38.51459854014598'}]
+No relevant policy provision found.
+Evidence ids: []","Based on the data, the average age for non-smokers is 39.39 and for smokers is 38.51. The data suggests that smokers in our book tend to be slightly younger, not older.",
+claim-24#2,groundedness,"Please assess C00494: coverage, any fraud indicators, and the approval needed.","Claim C00494 (inpatient, 3000.00): covered, payable 500.00 after deductible and limit. Fraud flags: ROUND_AMOUNT, INCONSISTENT_NOTES; SIU referral: yes. Required authority: siu. Clauses: COV-01, DED-01.","Question: Please assess C00494: coverage, any fraud indicators, and the approval needed.
+Coverage: covered=True; reasons=['covered under COV-01', 'deductible 2500 and limit 250000 applied (DED-01)']; clauses=['COV-01', 'DED-01']; payable_amount=500.0
+Fraud flags: [('ROUND_AMOUNT', 'amount 3000 is a round number'), ('INCONSISTENT_NOTES', 'adjuster notes record unverified or inconsistent documentation')]; refer_to_siu=True
+Risk band: low; risk drivers: ['smoker status: no (lowers risk)', 'children: 4 (raises risk)', 'age: 48 (raises risk)']
+Required authority: siu
+No relevant policy provision found.
+Evidence ids: ['COV-01', 'DED-01']","Based on the provided evidence, I recommend that C00494 be referred to SIU for review due to fraud indicators, including a round amount and inconsistent adjuster notes. The coverage appears to be valid under clauses 'COV-01' and 'DED-01', with a payable amount of 500.0. The risk band is low, driven by the absence of smoker status, but raised by the number of children and age. Approval from SIU is required.
+
+Decision: APPROVED by siu for claim C00494; payable 500.00.",
+risk-04#1,groundedness,Run the risk model on A0507 and give me the main drivers.,"Applicant A0507 is low risk (probability 0.08). Main drivers: smoker decreases risk, bmi increases risk, children increases risk.","Question: Run the risk model on A0507 and give me the main drivers.
+Risk band: low; risk drivers: ['smoker status: no (lowers risk)', 'bmi: 38.9 (raises risk)', 'children: 3 (raises risk)']
+No relevant policy provision found.
+Evidence ids: []","Based on the risk model for A0507, the main drivers are: the individual is a non-smoker, which lowers risk, a BMI of 38.9, which raises risk, and having 3 children, which also raises risk.",
+claim-34#1,groundedness,The customer on C00594 is chasing us. Where does coverage stand and what sign-off is needed?,"Claim C00594 (emergency, 7601.42): covered, payable 6601.42 after deductible and limit. Fraud flags: none; SIU referral: no. Required authority: adjuster. Clauses: COV-03, DED-01.","Question: The customer on C00594 is chasing us. Where does coverage stand and what sign-off is needed?
+Coverage: covered=True; reasons=['covered under COV-03', 'deductible 1000 and limit 50000 applied (DED-01)']; clauses=['COV-03', 'DED-01']; payable_amount=6601.42
+Fraud flags: []; refer_to_siu=False
+Risk band: low; risk drivers: ['smoker status: no (lowers risk)', 'bmi: 40.185 (raises risk)', 'age: 26 (lowers risk)']
+Required authority: adjuster
+No relevant policy provision found.
+Evidence ids: ['COV-03', 'DED-01']","Based on the evidence, coverage stands as covered under **COV-03** with a deductible of 1000 and limit of 50000 applied (**DED-01**), resulting in a payable amount of 6601.42. The required sign-off is from an adjuster. Risk drivers include a low risk due to non-smoker status and age, but a high BMI raises risk.
+
+Decision: APPROVED by adjuster for claim C00594; payable 6601.42.",
+analytics-09#2,groundedness,Do smokers in our book tend to be older? Show me the average age for smokers and non-smokers.,"Result of the reference query: [{'smoker': 'no', 'avg_age': '39.4'}, {'smoker': 'yes', 'avg_age': '38.5'}]","Question: Do smokers in our book tend to be older? Show me the average age for smokers and non-smokers.
+SQL: SELECT 
+  smoker, 
+  AVG(age) AS average_age
+FROM 
+  insurance_automation.curated.applicants
+GROUP BY 
+  smoker LIMIT 200
+Rows: [{'smoker': 'no', 'average_age': '39.38533834586466'}, {'smoker': 'yes', 'average_age': '38.51459854014598'}]
+No relevant policy provision found.
+Evidence ids: []","Based on the data, the average age for non-smokers is 39.39 and for smokers is 38.51. The data suggests that smokers in our book tend to be slightly younger, not older.",
+claim-04#1,groundedness,What is the status of the coverage decision for C00017?,"Claim C00017 (inpatient, 7927.31): covered, payable 6927.31 after deductible and limit. Fraud flags: LATE_REPORT, INCONSISTENT_NOTES; SIU referral: yes. Required authority: siu. Clauses: COV-01, DED-01, RPT-01.","Question: What is the status of the coverage decision for C00017?
+Coverage: covered=True; reasons=['covered under COV-01', 'deductible 1000 and limit 250000 applied (DED-01)', 'reported after the 45-day deadline (RPT-01); review advised']; clauses=['COV-01', 'DED-01', 'RPT-01']; payable_amount=6927.31
+Fraud flags: [('LATE_REPORT', 'reported 67 days after the loss'), ('INCONSISTENT_NOTES', 'adjuster notes record unverified or inconsistent documentation')]; refer_to_siu=True
+Risk band: low; risk drivers: ['smoker status: no (lowers risk)', 'age: 56 (raises risk)', 'children: 0 (lowers risk)']
+Required authority: siu
+No relevant policy provision found.
+Evidence ids: ['COV-01', 'DED-01', 'RPT-01']","I recommend review by SIU for C00017 due to fraud flags, including 'LATE_REPORT' and 'INCONSISTENT_NOTES', and the required authority being 'siu'. The coverage decision is covered under the given conditions, with a payable amount of 6927.31. Risk drivers include 'smoker status: no', 'age: 56', and 'children: 0'.
+
+Clauses relied on: COV-01, DED-01, RPT-01.
+
+Decision: APPROVED by siu for claim C00017; payable 6927.31.",
