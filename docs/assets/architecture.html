@@ -1,0 +1,272 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Architecture</title>
+<style>
+  :root {
+    --bg: #0A0F1E; --card: #111A2E; --card2: #0E1628; --line: #23304D;
+    --text: #EEF2FA; --muted: #8E9AB5; --arrow: #5D6E91;
+    --orange: #FF6A4D; --blue: #5B9BFF; --amber: #F5B544; --teal: #2DD4BF;
+    --violet: #A98BFF; --sky: #38BDF8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    width: 1600px; height: 880px; overflow: hidden; position: relative;
+    font-family: -apple-system, "SF Pro Display", "Inter", "Segoe UI", sans-serif;
+    color: var(--text);
+    background:
+      radial-gradient(900px 500px at 15% 0%, rgba(255,106,77,.10), transparent 60%),
+      radial-gradient(900px 600px at 95% 30%, rgba(45,212,191,.08), transparent 60%),
+      radial-gradient(800px 500px at 50% 110%, rgba(169,139,255,.10), transparent 60%),
+      var(--bg);
+  }
+  body::before {
+    content: ''; position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+  .abs { position: absolute; }
+  .eyebrow { left: 40px; top: 40px; font-size: 13px; letter-spacing: .22em; color: var(--orange); font-weight: 700; }
+  .title { left: 40px; top: 62px; font-size: 40px; font-weight: 750; letter-spacing: -.02em; }
+  .subtitle { left: 40px; top: 116px; font-size: 17px; color: var(--muted); }
+  .subtitle b { color: var(--text); font-weight: 600; }
+  .chips { right: 40px; top: 48px; display: flex; gap: 8px; }
+  .chip {
+    font-size: 13px; font-weight: 600; padding: 7px 12px; border-radius: 999px;
+    border: 1px solid var(--line); background: rgba(17,26,46,.8); color: var(--text);
+  }
+  .chip i { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 7px; vertical-align: 1px; }
+
+  .card {
+    position: absolute; border-radius: 14px; padding: 12px 16px;
+    background: linear-gradient(180deg, #14203A, var(--card2));
+    border: 1px solid var(--line);
+    box-shadow: 0 10px 28px rgba(0,0,0,.35);
+    display: flex; flex-direction: column; justify-content: center; overflow: hidden;
+  }
+  .card::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--c);
+  }
+  .tag { font-size: 10.5px; letter-spacing: .16em; font-weight: 700; color: var(--c); margin-bottom: 4px; }
+  .t { font-size: 16.5px; font-weight: 650; }
+  .s { font-size: 12.5px; color: var(--muted); margin-top: 3px; line-height: 1.38; }
+  .big .t { font-size: 19px; }
+
+  .ladder { margin-top: 10px; display: grid; gap: 5px; }
+  .rung {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 12.5px; padding: 5px 10px; border-radius: 8px;
+    background: rgba(45,212,191,.07); border: 1px solid rgba(45,212,191,.18);
+  }
+  .rung span:last-child { color: var(--muted); font-variant-numeric: tabular-nums; }
+  .rung.siu { background: rgba(245,181,68,.08); border-color: rgba(245,181,68,.28); }
+
+  .panel {
+    position: absolute; border-radius: 16px; padding: 16px 18px;
+    background: rgba(14,22,40,.85); border: 1px solid var(--line);
+  }
+  .panel h3 { font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 9px; }
+  .panel h3 i { width: 9px; height: 9px; border-radius: 3px; background: var(--c); display: inline-block; }
+  .panel h3 small { font-weight: 500; color: var(--muted); font-size: 12.5px; margin-left: 4px; }
+  .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 12px; }
+  .tile {
+    border-radius: 11px; padding: 11px 12px; min-height: 74px;
+    background: linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,.01));
+    border: 1px solid var(--line); border-top: 2px solid var(--c);
+  }
+  .tile .t { font-size: 14px; }
+  .tile .s { font-size: 12px; }
+
+  .footer { left: 40px; right: 40px; top: 818px; display: flex; justify-content: space-between; align-items: center; }
+  .metrics { display: flex; gap: 8px; align-items: center; }
+  .metrics .lbl { font-size: 12.5px; color: var(--muted); margin-right: 4px; letter-spacing: .04em; }
+  .metric {
+    font-size: 13px; padding: 7px 12px; border-radius: 10px;
+    background: rgba(45,212,191,.08); border: 1px solid rgba(45,212,191,.25);
+  }
+  .metric b { font-size: 15px; margin-right: 6px; color: var(--teal); font-variant-numeric: tabular-nums; }
+  .repo { font-size: 12.5px; color: var(--muted); }
+  .repo b { color: var(--text); font-weight: 600; }
+
+  svg { position: absolute; inset: 0; }
+  .lbl-svg { font-size: 11.5px; fill: var(--muted); font-family: -apple-system, "Inter", sans-serif; }
+</style>
+</head>
+<body>
+
+<div class="abs eyebrow">REFERENCE ARCHITECTURE · LLMOPS</div>
+<div class="abs title">Multi-Agent AI on Databricks</div>
+<div class="abs subtitle"><b>LLMs route and explain</b> &nbsp;·&nbsp; <b>tested code decides</b> &nbsp;·&nbsp; <b>humans approve</b> &nbsp;·&nbsp; every step traced, evaluated and governed</div>
+<div class="abs chips">
+  <div class="chip"><i style="background:var(--orange)"></i>LangGraph</div>
+  <div class="chip"><i style="background:var(--violet)"></i>MLflow 3</div>
+  <div class="chip"><i style="background:var(--sky)"></i>Unity Catalog</div>
+  <div class="chip"><i style="background:var(--teal)"></i>Model Serving</div>
+</div>
+
+<!-- connectors -->
+<svg width="1600" height="880" viewBox="0 0 1600 880">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#7F90B3"/>
+    </marker>
+    <marker id="at" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#2DD4BF"/>
+    </marker>
+    <marker id="aa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#F5B544"/>
+    </marker>
+  </defs>
+  <g fill="none" stroke="#5D6E91" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round">
+    <!-- request -> supervisor -->
+    <path d="M210 379 H248" marker-end="url(#a)"/>
+    <!-- supervisor bus -->
+    <path d="M450 379 H482"/>
+    <path d="M482 229 V529"/>
+    <path d="M482 229 H508" marker-end="url(#a)"/>
+    <path d="M482 329 H508" marker-end="url(#a)"/>
+    <path d="M482 429 H508" marker-end="url(#a)"/>
+    <path d="M482 529 H508" marker-end="url(#a)"/>
+    <!-- agents -> writer bus -->
+    <path d="M760 229 H1012"/>
+    <path d="M760 329 H1012"/>
+    <path d="M990 429 H1012"/>
+    <path d="M760 529 H1012"/>
+    <path d="M1012 229 V529"/>
+    <path d="M1012 289 H1038" marker-end="url(#a)"/>
+    <!-- coverage -> fraud -->
+    <path d="M760 429 H798" marker-end="url(#a)"/>
+    <!-- writer -> critic -->
+    <path d="M1090 328 V408" marker-end="url(#a)"/>
+    <!-- gate -> output -->
+    <path d="M1410 422 V458" stroke="#2DD4BF" marker-end="url(#at)"/>
+  </g>
+  <!-- critic retry loop -->
+  <path d="M1170 410 V330" fill="none" stroke="#F5B544" stroke-width="1.7" stroke-dasharray="5 4" marker-end="url(#aa)"/>
+  <text class="lbl-svg" x="1176" y="366" style="fill:#F5B544">fail</text>
+  <text class="lbl-svg" x="1176" y="381" style="fill:#F5B544">≤ 2 retries</text>
+  <!-- critic -> gate -->
+  <path d="M1210 449 H1234 V305 H1258" fill="none" stroke="#2DD4BF" stroke-width="1.7" stroke-linejoin="round" marker-end="url(#at)"/>
+  <text class="lbl-svg" x="1214" y="468" style="fill:#2DD4BF">pass</text>
+  <!-- governance links (dashed) -->
+  <g fill="none" stroke="#38BDF8" stroke-width="1.4" stroke-dasharray="3 5" opacity=".75">
+    <path d="M635 570 V634"/>
+    <path d="M350 446 V634"/>
+  </g>
+  <text class="lbl-svg" x="644" y="608" style="fill:#38BDF8">reads governed data</text>
+  <text class="lbl-svg" x="359" y="608" style="fill:#38BDF8">UC functions</text>
+  <g fill="none" stroke="#A98BFF" stroke-width="1.4" stroke-dasharray="3 5" opacity=".8">
+    <path d="M1410 570 V634"/>
+    <path d="M1125 490 V634"/>
+  </g>
+  <text class="lbl-svg" x="1419" y="608" style="fill:#A98BFF">audit + traces</text>
+  <text class="lbl-svg" x="1134" y="608" style="fill:#A98BFF">span per node</text>
+</svg>
+
+<!-- request -->
+<div class="card" style="--c:var(--sky); left:40px; top:314px; width:170px; height:130px;">
+  <div class="tag">ENTRY</div>
+  <div class="t">User request</div>
+  <div class="s">Model Serving endpoint<br>ResponsesAgent · scale-to-zero</div>
+</div>
+
+<!-- supervisor -->
+<div class="card big" style="--c:var(--orange); left:250px; top:304px; width:200px; height:150px;">
+  <div class="tag">LANGGRAPH</div>
+  <div class="t">Supervisor</div>
+  <div class="s">LLM router across five routes · claim ids pinned to the decision path</div>
+</div>
+
+<!-- specialist agents -->
+<div class="card" style="--c:var(--blue); left:510px; top:190px; width:250px; height:78px;">
+  <div class="t">SQL analyst</div>
+  <div class="s">Guarded read-only SELECT on curated tables</div>
+</div>
+<div class="card" style="--c:var(--blue); left:510px; top:290px; width:250px; height:78px;">
+  <div class="t">Policy RAG</div>
+  <div class="s">Clause retrieval with citations</div>
+</div>
+<div class="card" style="--c:var(--blue); left:510px; top:390px; width:250px; height:78px;">
+  <div class="t">Coverage checker</div>
+  <div class="s">Deterministic coverage + payable amount</div>
+</div>
+<div class="card" style="--c:var(--blue); left:510px; top:490px; width:250px; height:78px;">
+  <div class="t">Risk scorer</div>
+  <div class="s">UC-registered model · reason codes · fairness audit</div>
+</div>
+<div class="abs" style="left:512px; top:164px; font-size:11px; letter-spacing:.16em; font-weight:700; color:var(--blue);">SPECIALIST AGENTS</div>
+
+<!-- fraud -->
+<div class="card" style="--c:var(--amber); left:800px; top:390px; width:190px; height:78px;">
+  <div class="t">Fraud screener</div>
+  <div class="s">6 explainable rules · never auto-denies</div>
+</div>
+
+<!-- writer / critic -->
+<div class="card" style="--c:var(--violet); left:1040px; top:250px; width:170px; height:78px;">
+  <div class="t">Writer</div>
+  <div class="s">Words the structured result</div>
+</div>
+<div class="card" style="--c:var(--violet); left:1040px; top:410px; width:170px; height:78px;">
+  <div class="t">Critic</div>
+  <div class="s">Grounding + injection check</div>
+</div>
+
+<!-- approval gate -->
+<div class="card" style="--c:var(--teal); left:1260px; top:178px; width:300px; height:244px; justify-content:flex-start; padding-top:14px;">
+  <div class="tag">HUMAN-IN-THE-LOOP</div>
+  <div class="t">Approval gate</div>
+  <div class="s">LangGraph interrupt · approve / reject / edit</div>
+  <div class="ladder">
+    <div class="rung"><span>Auto-settle</span><span>&lt; 2,000</span></div>
+    <div class="rung"><span>Adjuster</span><span>≤ 10,000</span></div>
+    <div class="rung"><span>Senior adjuster</span><span>≤ 25,000</span></div>
+    <div class="rung"><span>Manager</span><span>&gt; 25,000</span></div>
+    <div class="rung siu"><span>SIU</span><span>any fraud referral</span></div>
+  </div>
+</div>
+
+<!-- output -->
+<div class="card" style="--c:var(--teal); left:1260px; top:460px; width:300px; height:108px;">
+  <div class="t">Answer + audit record</div>
+  <div class="s">Citations · deterministic decision line · Delta audit log</div>
+</div>
+
+<!-- governance panel -->
+<div class="panel" style="--c:var(--sky); left:40px; top:636px; width:740px; height:156px;">
+  <h3><i></i>Unity Catalog <small>data and model governance</small></h3>
+  <div class="tiles">
+    <div class="tile" style="--c:var(--sky)"><div class="t">Delta tables</div><div class="s">raw → curated schemas, Volume landing</div></div>
+    <div class="tile" style="--c:var(--sky)"><div class="t">PII column masks</div><div class="s">notes and applicant ids masked by identity</div></div>
+    <div class="tile" style="--c:var(--sky)"><div class="t">UC functions</div><div class="s">agent tools as governed SQL functions</div></div>
+    <div class="tile" style="--c:var(--sky)"><div class="t">Model registry</div><div class="s">risk_classifier @champion alias</div></div>
+  </div>
+</div>
+
+<!-- mlflow panel -->
+<div class="panel" style="--c:var(--violet); left:820px; top:636px; width:740px; height:156px;">
+  <h3><i></i>MLflow 3 <small>LLMOps lifecycle</small></h3>
+  <div class="tiles">
+    <div class="tile" style="--c:var(--violet)"><div class="t">Tracing</div><div class="s">span per graph node, cost and latency</div></div>
+    <div class="tile" style="--c:var(--violet)"><div class="t">Prompt Registry</div><div class="s">versioned prompts in UC</div></div>
+    <div class="tile" style="--c:var(--violet)"><div class="t">Evaluation</div><div class="s">86-item golden set, judges, 95% CIs</div></div>
+    <div class="tile" style="--c:var(--violet)"><div class="t">Release gate</div><div class="s">thresholds + champion regression check</div></div>
+  </div>
+</div>
+
+<!-- footer -->
+<div class="abs footer">
+  <div class="metrics">
+    <span class="lbl">HELD-OUT EVALUATION</span>
+    <div class="metric"><b>0.97</b>routing accuracy</div>
+    <div class="metric"><b>1.00</b>injection safety</div>
+    <div class="metric"><b>0.90</b>groundedness</div>
+  </div>
+  <div class="repo">Runs on <b>Databricks Free Edition</b> &nbsp;·&nbsp; github.com/VenkatagiriRamesh/<b>databricks-langgraph-multiagent-llmops</b></div>
+</div>
+
+</body>
+</html>

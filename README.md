@@ -8,6 +8,11 @@ A claims team spends its time deciding which claims are routine, which need an a
 
 ## Architecture
 
+![Multi-agent architecture: LangGraph supervisor, specialist agents, critic, human approval gate, Unity Catalog and MLflow 3](docs/assets/architecture_linkedin.png)
+
+<details>
+<summary>Same flow as a Mermaid diagram</summary>
+
 ```mermaid
 flowchart LR
     U[User request] --> SUP[Supervisor / router]
@@ -48,7 +53,9 @@ flowchart LR
     SERVE[(Model Serving endpoint, scale-to-zero)] -.- SUP
 ```
 
-The diagram above is Mermaid so GitHub renders it. A rendered image (prompt in `docs/DIAGRAM_PROMPT.md`) can replace it. Claim questions go through the coverage checker first; the fraud screener and risk scorer run only when the claim is covered. The UC functions in `agent_tools` can be exposed through Managed MCP, but the graph reads the warehouse over SQL and does not consume MCP.
+</details>
+
+The image is rendered from `docs/assets/architecture.html`. Claim questions go through the coverage checker first; the fraud screener and risk scorer run only when the claim is covered. The UC functions in `agent_tools` can be exposed through Managed MCP, but the graph reads the warehouse over SQL and does not consume MCP.
 
 ## Results
 
