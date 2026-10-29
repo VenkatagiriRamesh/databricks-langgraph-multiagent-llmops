@@ -1,0 +1,23 @@
+bundle:
+  name: insurance_automation
+
+variables:
+  warehouse_id:
+    description: >-
+      SQL warehouse used for all UC operations (Free Edition has exactly one). Find it with
+      `databricks warehouses list --profile <profile>`; pass --var="warehouse_id=<id>".
+  catalog:
+    description: Unity Catalog catalog for this project
+    default: "insurance_automation"
+  fm_model:
+    description: Foundation Model API endpoint used by the agents
+    default: "databricks-meta-llama-3-3-70b-instruct"
+
+include:
+  - resources/*.yml
+
+targets:
+  dev:
+    mode: development
+    default: true
+    # No workspace.host on purpose: resolved from the CLI profile (--profile).

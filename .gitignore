@@ -1,0 +1,14 @@
+.venv/
+.venv-install.log
+.env
+.databricks/
+.superpowers/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+mlruns/
+mlflow.db
+.local_cache/
+.DS_Store
+data/generated/
