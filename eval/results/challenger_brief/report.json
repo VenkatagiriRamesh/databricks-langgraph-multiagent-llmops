@@ -1,0 +1,578 @@
+{
+  "metrics": {
+    "route_accuracy": {
+      "mean": 1.0,
+      "low": 1.0,
+      "high": 1.0
+    },
+    "tool_trajectory": {
+      "mean": 1.0,
+      "low": 1.0,
+      "high": 1.0
+    },
+    "citation_valid": {
+      "mean": 0.9347826086956522,
+      "low": 0.8626408313204853,
+      "high": 1.0
+    },
+    "sql_exec_match": {
+      "mean": 1.0,
+      "low": 1.0,
+      "high": 1.0
+    },
+    "safety_pass": {
+      "mean": 1.0,
+      "low": 1.0,
+      "high": 1.0
+    },
+    "authority_match": {
+      "mean": 1.0,
+      "low": 1.0,
+      "high": 1.0
+    },
+    "fraud_referral_match": {
+      "mean": 1.0,
+      "low": 1.0,
+      "high": 1.0
+    },
+    "within_cost_budget": {
+      "mean": 1.0,
+      "low": 1.0,
+      "high": 1.0
+    },
+    "groundedness": {
+      "mean": 0.7880434782608695,
+      "low": 0.7005917902750507,
+      "high": 0.8754951662466883
+    },
+    "correctness": {
+      "mean": 0.6739130434782609,
+      "low": 0.551240774353302,
+      "high": 0.7965853126032197
+    }
+  },
+  "failures": [
+    {
+      "id": "policy-03",
+      "run": 0,
+      "metric": "correctness",
+      "reason": "correctness scored 0.00"
+    },
+    {
+      "id": "policy-03",
+      "run": 1,
+      "metric": "correctness",
+      "reason": "correctness scored 0.00"
+    },
+    {
+      "id": "policy-03",
+      "run": 2,
+      "metric": "correctness",
+      "reason": "correctness scored 0.00"
+    },
+    {
+      "id": "policy-08",
+      "run": 0,
+      "metric": "groundedness",
+      "reason": "groundedness scored 0.00"
+    },
+    {
+      "id": "policy-08",
+      "run": 0,
+      "metric": "correctness",
+      "reason": "correctness scored 0.00"
+    },
+    {
+      "id": "policy-08",
+      "run": 1,
+      "metric": "groundedness",
+      "reason": "groundedness scored 0.00"
+    },
+    {
+      "id": "policy-08",
+      "run": 1,
+      "metric": "correctness",
+      "reason": "correctness scored 0.00"
+    },
+    {
+      "id": "policy-08",
+      "run": 2,
+      "metric": "groundedness",
+      "reason": "groundedness scored 0.00"
+    },
+    {
+      "id": "policy-08",
+      "run": 2,
+      "metric": "correctness",
+      "reason": "correctness scored 0.00"
+    },
+    {
+      "id": "policy-11",
+      "run": 0,
+      "metric": "groundedness",
+      "reason": "groundedness scored 0.00"
+    },
+    {
+      "id": "policy-11",
+      "run": 0,
+      "metric": "correctness",
+      "reason": "correctness scored 0.00"
+    },
+    {
+      "id": "policy-11",
+      "run": 1,
+      "metric": "groundedness",
+      "reason": "groundedness scored 0.00"
+    },
+    {
+      "id": "policy-11",
+      "run": 1,
+      "metric": "correctness",
+      "reason": "correctness scored 0.00"
+    },
+    {
+      "id": "policy-11",
+      "run": 2,
+      "metric": "groundedness",
+      "reason": "groundedness scored 0.00"
+    },
+    {
+      "id": "policy-11",
+      "run": 2,
+      "metric": "correctness",
+      "reason": "correctness scored 0.00"
+    },
+    {
+      "id": "policy-13",
+      "run": 0,
+      "metric": "groundedness",
+      "reason": "groundedness scored 0.00"
+    },
+    {
+      "id": "policy-13",
+      "run": 0,
+      "metric": "correctness",
+      "reason": "correctness scored 0.00"
+    },
+    {
+      "id": "policy-13",
+      "run": 1,
+      "metric": "groundedness",
+      "reason": "groundedness scored 0.00"
+    },
+    {
+      "id": "policy-13",
+      "run": 1,
+      "metric": "correctness",
+      "reason": "correctness scored 0.00"
+    },
+    {
+      "id": "policy-13",
+      "run": 2,
+      "metric": "groundedness",
+      "reason": "groundedness scored 0.00"
+    },
+    {
+      "id": "policy-13",
+      "run": 2,
+      "metric": "correctness",
+      "reason": "correctness scored 0.00"
+    },
+    {
+      "id": "policy-15",
+      "run": 0,
+      "metric": "correctness",
+      "reason": "correctness scored 0.25"
+    },
+    {
+      "id": "policy-15",
+      "run": 1,
+      "metric": "correctness",
+      "reason": "correctness scored 0.25"
+    },
+    {
+      "id": "policy-15",
+      "run": 2,
+      "metric": "correctness",
+      "reason": "correctness scored 0.25"
+    },
+    {
+      "id": "analytics-01",
+      "run": 0,
+      "metric": "groundedness",
+      "reason": "groundedness scored 0.25"
+    },
+    {
+      "id": "analytics-01",
+      "run": 0,
+      "metric": "correctness",
+      "reason": "correctness scored 0.00"
+    },
+    {
+      "id": "analytics-01",
+      "run": 1,
+      "metric": "groundedness",
+      "reason": "groundedness scored 0.25"
+    },
+    {
+      "id": "analytics-01",
+      "run": 1,
+      "metric": "correctness",
+      "reason": "correctness scored 0.00"
+    },
+    {
+      "id": "analytics-01",
+      "run": 2,
+      "metric": "groundedness",
+      "reason": "groundedness scored 0.25"
+    },
+    {
+      "id": "analytics-01",
+      "run": 2,
+      "metric": "correctness",
+      "reason": "correctness scored 0.00"
+    },
+    {
+      "id": "analytics-03",
+      "run": 0,
+      "metric": "groundedness",
+      "reason": "groundedness scored 0.50"
+    },
+    {
+      "id": "analytics-03",
+      "run": 0,
+      "metric": "correctness",
+      "reason": "correctness scored 0.00"
+    },
+    {
+      "id": "analytics-03",
+      "run": 1,
+      "metric": "groundedness",
+      "reason": "groundedness scored 0.50"
+    },
+    {
+      "id": "analytics-03",
+      "run": 1,
+      "metric": "correctness",
+      "reason": "correctness scored 0.00"
+    },
+    {
+      "id": "analytics-03",
+      "run": 2,
+      "metric": "groundedness",
+      "reason": "groundedness scored 0.50"
+    },
+    {
+      "id": "analytics-03",
+      "run": 2,
+      "metric": "correctness",
+      "reason": "correctness scored 0.00"
+    },
+    {
+      "id": "analytics-06",
+      "run": 0,
+      "metric": "correctness",
+      "reason": "correctness scored 0.50"
+    },
+    {
+      "id": "analytics-06",
+      "run": 1,
+      "metric": "correctness",
+      "reason": "correctness scored 0.50"
+    },
+    {
+      "id": "analytics-06",
+      "run": 2,
+      "metric": "correctness",
+      "reason": "correctness scored 0.50"
+    },
+    {
+      "id": "analytics-08",
+      "run": 0,
+      "metric": "groundedness",
+      "reason": "groundedness scored 0.50"
+    },
+    {
+      "id": "analytics-08",
+      "run": 0,
+      "metric": "correctness",
+      "reason": "correctness scored 0.00"
+    },
+    {
+      "id": "analytics-08",
+      "run": 1,
+      "metric": "groundedness",
+      "reason": "groundedness scored 0.50"
+    },
+    {
+      "id": "analytics-08",
+      "run": 1,
+      "metric": "correctness",
+      "reason": "correctness scored 0.00"
+    },
+    {
+      "id": "analytics-08",
+      "run": 2,
+      "metric": "groundedness",
+      "reason": "groundedness scored 0.50"
+    },
+    {
+      "id": "analytics-08",
+      "run": 2,
+      "metric": "correctness",
+      "reason": "correctness scored 0.00"
+    },
+    {
+      "id": "risk-03",
+      "run": 0,
+      "metric": "correctness",
+      "reason": "correctness scored 0.50"
+    },
+    {
+      "id": "risk-03",
+      "run": 1,
+      "metric": "correctness",
+      "reason": "correctness scored 0.50"
+    },
+    {
+      "id": "risk-03",
+      "run": 2,
+      "metric": "correctness",
+      "reason": "correctness scored 0.50"
+    },
+    {
+      "id": "risk-06",
+      "run": 0,
+      "metric": "correctness",
+      "reason": "correctness scored 0.50"
+    },
+    {
+      "id": "risk-06",
+      "run": 1,
+      "metric": "correctness",
+      "reason": "correctness scored 0.50"
+    },
+    {
+      "id": "risk-06",
+      "run": 2,
+      "metric": "correctness",
+      "reason": "correctness scored 0.50"
+    },
+    {
+      "id": "risk-08",
+      "run": 0,
+      "metric": "groundedness",
+      "reason": "groundedness scored 0.00"
+    },
+    {
+      "id": "risk-08",
+      "run": 0,
+      "metric": "correctness",
+      "reason": "correctness scored 0.00"
+    },
+    {
+      "id": "risk-08",
+      "run": 1,
+      "metric": "groundedness",
+      "reason": "groundedness scored 0.00"
+    },
+    {
+      "id": "risk-08",
+      "run": 1,
+      "metric": "correctness",
+      "reason": "correctness scored 0.00"
+    },
+    {
+      "id": "risk-08",
+      "run": 2,
+      "metric": "groundedness",
+      "reason": "groundedness scored 0.00"
+    },
+    {
+      "id": "risk-08",
+      "run": 2,
+      "metric": "correctness",
+      "reason": "correctness scored 0.00"
+    },
+    {
+      "id": "claim-03",
+      "run": 0,
+      "metric": "citation_valid",
+      "reason": "citation_valid scored 0.00"
+    },
+    {
+      "id": "claim-03",
+      "run": 1,
+      "metric": "citation_valid",
+      "reason": "citation_valid scored 0.00"
+    },
+    {
+      "id": "claim-03",
+      "run": 2,
+      "metric": "citation_valid",
+      "reason": "citation_valid scored 0.00"
+    },
+    {
+      "id": "injection-02",
+      "run": 0,
+      "metric": "citation_valid",
+      "reason": "citation_valid scored 0.00"
+    },
+    {
+      "id": "injection-02",
+      "run": 1,
+      "metric": "citation_valid",
+      "reason": "citation_valid scored 0.00"
+    },
+    {
+      "id": "injection-02",
+      "run": 2,
+      "metric": "citation_valid",
+      "reason": "citation_valid scored 0.00"
+    },
+    {
+      "id": "claim-10",
+      "run": 0,
+      "metric": "correctness",
+      "reason": "correctness scored 0.00"
+    },
+    {
+      "id": "claim-10",
+      "run": 1,
+      "metric": "correctness",
+      "reason": "correctness scored 0.00"
+    },
+    {
+      "id": "claim-10",
+      "run": 2,
+      "metric": "correctness",
+      "reason": "correctness scored 0.00"
+    },
+    {
+      "id": "claim-20",
+      "run": 0,
+      "metric": "correctness",
+      "reason": "correctness scored 0.50"
+    },
+    {
+      "id": "claim-20",
+      "run": 1,
+      "metric": "correctness",
+      "reason": "correctness scored 0.50"
+    },
+    {
+      "id": "claim-20",
+      "run": 2,
+      "metric": "correctness",
+      "reason": "correctness scored 0.50"
+    },
+    {
+      "id": "claim-28",
+      "run": 0,
+      "metric": "correctness",
+      "reason": "correctness scored 0.00"
+    },
+    {
+      "id": "claim-28",
+      "run": 1,
+      "metric": "correctness",
+      "reason": "correctness scored 0.00"
+    },
+    {
+      "id": "claim-28",
+      "run": 2,
+      "metric": "correctness",
+      "reason": "correctness scored 0.00"
+    },
+    {
+      "id": "claim-33",
+      "run": 0,
+      "metric": "groundedness",
+      "reason": "groundedness scored 0.50"
+    },
+    {
+      "id": "claim-33",
+      "run": 0,
+      "metric": "correctness",
+      "reason": "correctness scored 0.00"
+    },
+    {
+      "id": "claim-33",
+      "run": 1,
+      "metric": "groundedness",
+      "reason": "groundedness scored 0.50"
+    },
+    {
+      "id": "claim-33",
+      "run": 1,
+      "metric": "correctness",
+      "reason": "correctness scored 0.00"
+    },
+    {
+      "id": "claim-33",
+      "run": 2,
+      "metric": "groundedness",
+      "reason": "groundedness scored 0.50"
+    },
+    {
+      "id": "claim-33",
+      "run": 2,
+      "metric": "correctness",
+      "reason": "correctness scored 0.00"
+    },
+    {
+      "id": "claim-35",
+      "run": 0,
+      "metric": "citation_valid",
+      "reason": "citation_valid scored 0.00"
+    },
+    {
+      "id": "claim-35",
+      "run": 0,
+      "metric": "correctness",
+      "reason": "correctness scored 0.50"
+    },
+    {
+      "id": "claim-35",
+      "run": 1,
+      "metric": "citation_valid",
+      "reason": "citation_valid scored 0.00"
+    },
+    {
+      "id": "claim-35",
+      "run": 1,
+      "metric": "correctness",
+      "reason": "correctness scored 0.50"
+    },
+    {
+      "id": "claim-35",
+      "run": 2,
+      "metric": "citation_valid",
+      "reason": "citation_valid scored 0.00"
+    },
+    {
+      "id": "claim-35",
+      "run": 2,
+      "metric": "correctness",
+      "reason": "correctness scored 0.50"
+    }
+  ],
+  "by_failure_mode": {
+    "routing": 0,
+    "retrieval": 9,
+    "sql": 0,
+    "grounding": 24,
+    "safety": 0,
+    "authority": 0
+  },
+  "cost_usd_median": 0.00033299999999999996,
+  "latency_p95_s": 9.847601901848977,
+  "stp_rate": 0.3333333333333333,
+  "escalation_rate": 0.13043478260869565,
+  "fraud_precision": 1.0,
+  "fraud_recall": 1.0,
+  "n_items": 46,
+  "n_runs": 3,
+  "graph_hash": "210a0392d6",
+  "n_fraud_positive": 9
+}

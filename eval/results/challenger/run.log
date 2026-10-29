@@ -1,0 +1,151 @@
+[1;38;5;208mIf you are using MLflow Tracing, you can migrate your traces to Unity Catalog for unlimited storage, fine-grained access controls, and queryability from notebooks, SQL, and dashboards. [94mLearn more: https://docs.databricks.com/aws/en/mlflow3/genai/tracing/migrate-traces-to-uc[0m
+Downloading artifacts:   0%|          | 0/47 [00:00<?, ?it/s]Downloading artifacts:   2%|▏         | 1/47 [00:00<00:00, 1731.04it/s]Downloading artifacts:   4%|▍         | 2/47 [00:00<00:00, 2703.39it/s]Downloading artifacts:   6%|▋         | 3/47 [00:00<00:00, 3750.50it/s]Downloading artifacts:   9%|▊         | 4/47 [00:00<00:00, 4744.69it/s]Downloading artifacts:  11%|█         | 5/47 [00:00<00:00, 5663.39it/s]Downloading artifacts:  13%|█▎        | 6/47 [00:00<00:00, 6501.12it/s]Downloading artifacts:  15%|█▍        | 7/47 [00:00<00:00, 7278.17it/s]Downloading artifacts:  17%|█▋        | 8/47 [00:00<00:00, 8033.14it/s]Downloading artifacts:  19%|█▉        | 9/47 [00:00<00:00, 8721.98it/s]Downloading artifacts:  21%|██▏       | 10/47 [00:00<00:00, 9389.53it/s]Downloading artifacts:  23%|██▎       | 11/47 [00:00<00:00, 9984.28it/s]Downloading artifacts:  26%|██▌       | 12/47 [00:00<00:00, 10556.13it/s]Downloading artifacts:  28%|██▊       | 13/47 [00:00<00:00, 11093.78it/s]Downloading artifacts:  30%|██▉       | 14/47 [00:00<00:00, 11618.57it/s]Downloading artifacts:  32%|███▏      | 15/47 [00:00<00:00, 12115.26it/s]Downloading artifacts:  34%|███▍      | 16/47 [00:00<00:00, 12609.71it/s]Downloading artifacts:  36%|███▌      | 17/47 [00:00<00:00, 13097.57it/s]Downloading artifacts:  38%|███▊      | 18/47 [00:00<00:00, 13544.58it/s]Downloading artifacts:  40%|████      | 19/47 [00:00<00:00, 260.40it/s]  Downloading artifacts:  43%|████▎     | 20/47 [00:00<00:00, 273.32it/s]Downloading artifacts:  45%|████▍     | 21/47 [00:00<00:00, 286.05it/s]Downloading artifacts:  47%|████▋     | 22/47 [00:00<00:00, 299.50it/s]Downloading artifacts:  49%|████▉     | 23/47 [00:00<00:00, 197.59it/s]Downloading artifacts:  49%|████▉     | 23/47 [00:00<00:00, 197.59it/s]Downloading artifacts:  51%|█████     | 24/47 [00:00<00:00, 197.59it/s]Downloading artifacts:  53%|█████▎    | 25/47 [00:00<00:00, 197.59it/s]Downloading artifacts:  55%|█████▌    | 26/47 [00:00<00:00, 197.59it/s]Downloading artifacts:  57%|█████▋    | 27/47 [00:00<00:00, 197.59it/s]Downloading artifacts:  60%|█████▉    | 28/47 [00:00<00:00, 197.59it/s]Downloading artifacts:  62%|██████▏   | 29/47 [00:00<00:00, 197.59it/s]Downloading artifacts:  64%|██████▍   | 30/47 [00:00<00:00, 197.59it/s]Downloading artifacts:  66%|██████▌   | 31/47 [00:00<00:00, 197.59it/s]Downloading artifacts:  68%|██████▊   | 32/47 [00:00<00:00, 197.59it/s]Downloading artifacts:  70%|███████   | 33/47 [00:00<00:00, 197.59it/s]Downloading artifacts:  72%|███████▏  | 34/47 [00:00<00:00, 197.59it/s]Downloading artifacts:  74%|███████▍  | 35/47 [00:01<00:00, 197.59it/s]Downloading artifacts:  77%|███████▋  | 36/47 [00:01<00:00, 197.59it/s]Downloading artifacts:  79%|███████▊  | 37/47 [00:01<00:00, 197.59it/s]Downloading artifacts:  81%|████████  | 38/47 [00:01<00:00, 197.59it/s]Downloading artifacts:  83%|████████▎ | 39/47 [00:01<00:00, 197.59it/s]Downloading artifacts:  85%|████████▌ | 40/47 [00:01<00:00, 197.59it/s]Downloading artifacts:  87%|████████▋ | 41/47 [00:01<00:00, 197.59it/s]Downloading artifacts:  89%|████████▉ | 42/47 [00:01<00:00, 197.59it/s]Downloading artifacts:  91%|█████████▏| 43/47 [00:01<00:00, 23.98it/s] Downloading artifacts:  91%|█████████▏| 43/47 [00:01<00:00, 23.98it/s]Downloading artifacts:  94%|█████████▎| 44/47 [00:01<00:00, 23.98it/s]Downloading artifacts:  96%|█████████▌| 45/47 [00:01<00:00, 23.98it/s]Downloading artifacts:  98%|█████████▊| 46/47 [00:01<00:00, 23.98it/s]Downloading artifacts: 100%|██████████| 47/47 [00:01<00:00, 23.98it/s]Downloading artifacts: 100%|██████████| 47/47 [00:01<00:00, 27.06it/s]
+2026/10/29 20:08:44 INFO mlflow.tracing.export.async_export_queue: Flushing the async trace logging queue before program exit. This may take a while...
+🏃 View run eval-dev at: https://dbc-5545da01-a5ef.cloud.databricks.com/ml/experiments/125419177788453/runs/230d53666a07405e8cb5566954a7da76
+🧪 View experiment at: https://dbc-5545da01-a5ef.cloud.databricks.com/ml/experiments/125419177788453
+{
+  "metrics": {
+    "route_accuracy": {
+      "mean": 0.9782608695652174,
+      "low": 0.9356521739130435,
+      "high": 1.0
+    },
+    "tool_trajectory": {
+      "mean": 0.9782608695652174,
+      "low": 0.9356521739130435,
+      "high": 1.0
+    },
+    "citation_valid": {
+      "mean": 1.0,
+      "low": 1.0,
+      "high": 1.0
+    },
+    "sql_exec_match": {
+      "mean": 1.0,
+      "low": 1.0,
+      "high": 1.0
+    },
+    "safety_pass": {
+      "mean": 1.0,
+      "low": 1.0,
+      "high": 1.0
+    },
+    "authority_match": {
+      "mean": 1.0,
+      "low": 1.0,
+      "high": 1.0
+    },
+    "fraud_referral_match": {
+      "mean": 1.0,
+      "low": 1.0,
+      "high": 1.0
+    },
+    "within_cost_budget": {
+      "mean": 1.0,
+      "low": 1.0,
+      "high": 1.0
+    },
+    "groundedness": {
+      "mean": 0.9782608695652174,
+      "low": 0.9576789141865716,
+      "high": 0.9988428249438632
+    },
+    "correctness": {
+      "mean": 0.9510869565217391,
+      "low": 0.8908919625181878,
+      "high": 1.0
+    }
+  },
+  "failures": [
+    {
+      "id": "risk-06",
+      "run": 0,
+      "metric": "correctness",
+      "reason": "correctness scored 0.00"
+    },
+    {
+      "id": "risk-06",
+      "run": 1,
+      "metric": "correctness",
+      "reason": "correctness scored 0.00"
+    },
+    {
+      "id": "risk-06",
+      "run": 2,
+      "metric": "correctness",
+      "reason": "correctness scored 0.00"
+    },
+    {
+      "id": "risk-08",
+      "run": 0,
+      "metric": "route_accuracy",
+      "reason": "route_accuracy scored 0.00"
+    },
+    {
+      "id": "risk-08",
+      "run": 0,
+      "metric": "tool_trajectory",
+      "reason": "tool_trajectory scored 0.00"
+    },
+    {
+      "id": "risk-08",
+      "run": 0,
+      "metric": "correctness",
+      "reason": "correctness scored 0.00"
+    },
+    {
+      "id": "risk-08",
+      "run": 1,
+      "metric": "route_accuracy",
+      "reason": "route_accuracy scored 0.00"
+    },
+    {
+      "id": "risk-08",
+      "run": 1,
+      "metric": "tool_trajectory",
+      "reason": "tool_trajectory scored 0.00"
+    },
+    {
+      "id": "risk-08",
+      "run": 1,
+      "metric": "correctness",
+      "reason": "correctness scored 0.00"
+    },
+    {
+      "id": "risk-08",
+      "run": 2,
+      "metric": "route_accuracy",
+      "reason": "route_accuracy scored 0.00"
+    },
+    {
+      "id": "risk-08",
+      "run": 2,
+      "metric": "tool_trajectory",
+      "reason": "tool_trajectory scored 0.00"
+    },
+    {
+      "id": "risk-08",
+      "run": 2,
+      "metric": "correctness",
+      "reason": "correctness scored 0.00"
+    }
+  ],
+  "by_failure_mode": {
+    "routing": 6,
+    "retrieval": 0,
+    "sql": 0,
+    "grounding": 0,
+    "safety": 0,
+    "authority": 0
+  },
+  "cost_usd_median": 0.00041849999999999873,
+  "latency_p95_s": 8.597106922344391,
+  "stp_rate": 0.375,
+  "escalation_rate": 0.0,
+  "fraud_precision": 1.0,
+  "fraud_recall": 1.0,
+  "n_items": 46,
+  "n_runs": 3,
+  "graph_hash": "aa18de2f1f",
+  "n_fraud_positive": 9
+}
