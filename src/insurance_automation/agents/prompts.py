@@ -75,3 +75,17 @@ class RegistryPromptStore:
     def source(self, name: str) -> str:
         self.get(name)
         return self._cache[name][1]
+
+
+class OverlayPromptStore:
+    """Challenger experiments: override named prompts on top of a base store."""
+
+    def __init__(self, base: PromptStore, overrides: dict[str, str]):
+        self.base, self.overrides = base, overrides
+
+    def get(self, name: str) -> str:
+        base_text = self.base.get(name)  # raises KeyError for a name that is not a real prompt
+        return self.overrides.get(name, base_text)
+
+    def source(self, name: str) -> str:
+        return 'override' if name in self.overrides else getattr(self.base, 'source', lambda n: 'base')(name)

@@ -16,6 +16,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument('--split', choices=['dev', 'heldout'], default='dev')
     parser.add_argument('--runs', type=int, default=3)
     parser.add_argument('--golden', default=DEFAULT_GOLDEN)
+    parser.add_argument('--prompt', action='append', default=[], metavar='NAME=TEXT',
+                        help='override a prompt for a challenger experiment')
     parser.add_argument('--report-out', default='eval/results/latest_report.json')
     args = parser.parse_args(argv)
 
@@ -26,7 +28,11 @@ def main(argv: list[str] | None = None) -> int:
     import mlflow
 
     from insurance_automation.agents.graph import build_graph, invoke, resume
-    from insurance_automation.agents.prompts import DEFAULT_PROMPTS, RegistryPromptStore
+    from insurance_automation.agents.prompts import (
+        DEFAULT_PROMPTS,
+        OverlayPromptStore,
+        RegistryPromptStore,
+    )
     from insurance_automation.common.config import load_config
     from insurance_automation.evaluation.golden import load_golden
     from insurance_automation.evaluation.harness import make_runner, run_eval
@@ -38,6 +44,8 @@ def main(argv: list[str] | None = None) -> int:
     user = os.environ.get('USER_EMAIL', 'venkatagiriramesh11@gmail.com')
     mlflow.set_experiment(f'/Users/{user}/insurance_automation_eval')
     prompts = RegistryPromptStore(cfg.schema('eval'))
+    if args.prompt:
+        prompts = OverlayPromptStore(prompts, dict(p.split('=', 1) for p in args.prompt))
     ctx = build_live_context(cfg, prompts=prompts)
     graph = build_graph(ctx)
     items = load_golden(args.golden, split=args.split)

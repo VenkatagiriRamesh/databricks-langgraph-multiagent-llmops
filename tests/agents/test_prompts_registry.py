@@ -78,3 +78,22 @@ def test_register_all_skips_unchanged_and_versions_changed():
     assert len(reg.versions['cat.eval.critic']) == 2
     assert reg.aliases[('cat.eval.writer', 'production')] == 1
     assert reg.aliases[('cat.eval.critic', 'production')] == 2
+
+
+def test_overlay_prompt_store_overrides_named_prompts_only():
+    from insurance_automation.agents.prompts import LocalPromptStore, OverlayPromptStore
+
+    base = LocalPromptStore({'writer': 'base writer', 'critic': 'base critic'})
+    store = OverlayPromptStore(base, {'writer': 'challenger writer'})
+    assert store.get('writer') == 'challenger writer'
+    assert store.get('critic') == 'base critic'
+
+
+def test_overlay_prompt_store_rejects_unknown_override_names():
+    import pytest
+
+    from insurance_automation.agents.prompts import LocalPromptStore, OverlayPromptStore
+
+    store = OverlayPromptStore(LocalPromptStore({'writer': 'w'}), {'nonsense': 'x'})
+    with pytest.raises(KeyError):
+        store.get('nonsense')
