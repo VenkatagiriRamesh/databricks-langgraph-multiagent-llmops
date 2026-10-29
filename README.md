@@ -1,4 +1,4 @@
-# Databricks LangGraph Insurance Automation
+# Databricks LangGraph Claims Automation
 
 Multi-agent insurance claims and underwriting automation on Databricks Free Edition:
 LangGraph orchestration, MLflow tracing and evaluation, Unity Catalog governance.
