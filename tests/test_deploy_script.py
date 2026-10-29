@@ -31,3 +31,10 @@ def test_pip_requirements_cover_every_third_party_import_in_src():
     required = ' '.join(PIP_REQUIREMENTS).lower()
     missing = sorted(m for m in third_party if pip_name.get(m, m).lower() not in required)
     assert not missing, f'deploy requirements are missing: {missing}'
+
+
+def test_deploy_script_migrates_the_approval_table():
+    import pathlib
+
+    source = pathlib.Path('scripts/deploy_agent_endpoint.py').read_text()
+    assert 'migrate_table_sql' in source

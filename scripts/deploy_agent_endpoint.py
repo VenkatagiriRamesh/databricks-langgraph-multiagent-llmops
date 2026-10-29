@@ -48,10 +48,13 @@ def main(argv=None) -> None:
     cfg = load_config(require_warehouse=True)
     model_name = f'{cfg.catalog}.models.claims_copilot_agent'
     mlflow.set_registry_uri('databricks-uc')
-    from insurance_automation.agents.approval_log import ensure_table_sql
+    from insurance_automation.agents.approval_log import ensure_table_sql, migrate_table_sql
     from insurance_automation.common.sql import run_sql
 
-    run_sql(ensure_table_sql(f'{cfg.schema("eval")}.approval_decisions'), cfg.warehouse_id)
+    audit_table = f'{cfg.schema("eval")}.approval_decisions'
+    run_sql(ensure_table_sql(audit_table), cfg.warehouse_id)
+    for statement in migrate_table_sql(audit_table):  # tables created by earlier versions
+        run_sql(statement, cfg.warehouse_id)
     info = mlflow.pyfunc.log_model(
         name='agent', python_model=ENTRY, code_paths=['src/insurance_automation'],
         registered_model_name=model_name, pip_requirements=PIP_REQUIREMENTS,
