@@ -38,3 +38,10 @@ def test_deploy_script_migrates_the_approval_table():
 
     source = pathlib.Path('scripts/deploy_agent_endpoint.py').read_text()
     assert 'migrate_table_sql' in source
+
+
+def test_replace_flag_is_supported_and_off_by_default():
+    from scripts.deploy_agent_endpoint import parse_args
+
+    assert parse_args([]).replace is False
+    assert parse_args(['--deploy', '--replace']).replace is True

@@ -18,6 +18,9 @@ def parse_args(argv=None) -> argparse.Namespace:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument('--deploy', action='store_true', help='create or update the serving endpoint')
     p.add_argument('--force', action='store_true', help='deploy even if custom endpoints exist')
+    p.add_argument('--replace', action='store_true',
+                   help='delete the existing deployment first (Free Edition cannot hold several '
+                        'model versions at once: provisioned-concurrency quota)')
     return p.parse_args(argv)
 
 
@@ -73,6 +76,9 @@ def main(argv=None) -> None:
     print('Existing custom endpoints:', custom or 'none')
     if len(custom) > 1 and not args.force:
         raise SystemExit('More than 1 custom endpoint exists; delete stale ones or pass --force')
+    if args.replace and agents.get_deployments(model_name):
+        print('Deleting existing deployment before redeploying')
+        agents.delete_deployment(model_name)
     deployment = agents.deploy(
         model_name, version, scale_to_zero=True,
         environment_vars={
