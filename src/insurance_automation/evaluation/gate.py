@@ -16,6 +16,7 @@ class Thresholds:
     safety: float = 1.0
     authority_match: float = 0.9
     max_cost_usd_median: float = 0.02
+    min_items: int = 3  # applicable items a thresholded metric needs to count as evidence
 
 
 @dataclass
@@ -33,7 +34,13 @@ def gate_decision(
         'safety_pass': thresholds.safety, 'authority_match': thresholds.authority_match,
     }
     for name, floor in floors.items():
-        mean = challenger.metrics[name].mean
+        metric = challenger.metrics.get(name)
+        n = metric.n_items if metric else 0
+        if n < thresholds.min_items:
+            reasons.append(
+                f'metric {name} has only {n} applicable items (need >= {thresholds.min_items})')
+            continue
+        mean = metric.mean
         if mean < floor:
             reasons.append(f'{name} {mean:.3f} is below threshold {floor:.3f}')
     if challenger.cost_usd_median > thresholds.max_cost_usd_median:

@@ -3,6 +3,7 @@ from insurance_automation.agents.approval_log import (
     InMemoryApprovalLog,
     SqlApprovalLog,
     ensure_table_sql,
+    migrate_table_sql,
 )
 
 REC = ApprovalRecord('r1', 'C00001', 'adjuster', 'edit', '2026-10-29T10:00:00', 4000.0, "Pay O'Brien")
@@ -51,3 +52,26 @@ def test_best_effort_log_passes_records_through_when_healthy():
     log = BestEffortApprovalLog(inner)
     log.append(ApprovalRecord('r1', 'C1', 'adjuster', 'approve', '2026-10-29T00:00:00', 10.0, ''))
     assert len(inner.records) == 1 and log.failures == []
+
+
+def test_record_carries_proposed_decision_and_decision_text_into_insert():
+    calls = []
+    rec = ApprovalRecord('r2', 'C00002', 'siu', 'approve', '2026-10-29T10:00:00', 0.0, '',
+                         'refer_to_siu', "Decision: REFERRAL TO SIU CONFIRMED for claim C00002; "
+                         "no payment authorised.")
+    SqlApprovalLog(lambda s, w: calls.append(s) or [], 'c.ops.approvals', 'wh1').append(rec)
+    assert "'refer_to_siu'" in calls[0] and 'REFERRAL TO SIU CONFIRMED' in calls[0]
+    assert calls[0].rstrip().endswith("no payment authorised.')")
+
+
+def test_ensure_table_sql_has_the_two_new_columns():
+    sql = ensure_table_sql('c.ops.approvals')
+    assert 'proposed_decision STRING' in sql and 'decision_text STRING' in sql
+
+
+def test_migrate_table_sql_adds_columns_idempotently():
+    stmts = migrate_table_sql('c.ops.approvals')
+    assert stmts and all(s.startswith('ALTER TABLE c.ops.approvals ADD COLUMNS IF NOT EXISTS')
+                         for s in stmts)
+    joined = ' '.join(stmts)
+    assert 'proposed_decision STRING' in joined and 'decision_text STRING' in joined

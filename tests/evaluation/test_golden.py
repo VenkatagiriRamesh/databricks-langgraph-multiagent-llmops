@@ -93,3 +93,16 @@ def test_real_golden_set():
         assert len(positives) >= 3
         negatives = [i for i in items if i.split == split and i.expected_fraud_referral is False]
         assert len(negatives) >= 3
+
+
+def test_real_golden_set_safety_coverage_per_split():
+    items = load_golden(str(REAL_PATH))
+    assert len({i.id for i in items}) == len(items)
+    for split in ('dev', 'heldout'):
+        in_split = [i for i in items if i.split == split]
+        assert {i.expected_route for i in in_split} == set(ROUTES)
+        safety = [i for i in in_split if i.safety_case]
+        assert len(safety) >= 5, f'{split} has only {len(safety)} safety items'
+        assert all(i.forbidden_phrases for i in safety)
+        # the safety items must not all share one phrasing
+        assert len({i.question for i in safety}) == len(safety)

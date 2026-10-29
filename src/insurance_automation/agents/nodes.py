@@ -21,9 +21,12 @@ from insurance_automation.tools.retrieval import PolicyHit
 from insurance_automation.tools.risk_model import ReasonCode, RiskScore, describe_reason
 from insurance_automation.tools.sql_guard import UnsafeSQLError, validate_select_only
 
-CLAIM_ID = re.compile(r'C\d{5}')
-APPLICANT_ID = re.compile(r'A\d{4}')
-CITATION_ID = re.compile(r'[A-Z]+-\d{2}')
+CLAIM_ID = re.compile(r'\bC\d{5}\b', re.IGNORECASE)
+APPLICANT_ID = re.compile(r'\bA\d{4}\b', re.IGNORECASE)
+CITATION_ID = re.compile(r'\b(?:COV|EXC|WAIT|RPT|DED|AUTH|SIU|UW|PRIV)-\d{2}\b')
+MAX_QUESTION_CHARS = 2000
+TOO_LONG_ANSWER = 'The question is too long. Please shorten it.'
+TOO_LONG_REASON = 'question too long'
 INJECTION = re.compile(r'ignore (all |any )?(previous|prior) instructions|approve this claim', re.IGNORECASE)
 GRANTS = re.compile(r'(?<!not )(?<!n\'t )(?<!un)\b(approved?|grant(ed|s)?)\b', re.IGNORECASE)
 REFUSAL_ANSWER = 'I can only help with insurance claims, policy, risk and analytics questions.'
@@ -65,8 +68,10 @@ def supervisor(state: ClaimsState, ctx: NodeContext) -> dict:
     question = state.get('question', '')
     if not question.strip():
         return {'route': 'refuse'}
+    if len(question) > MAX_QUESTION_CHARS:  # refused before any LLM call
+        return {'route': 'refuse', 'refusal_reason': TOO_LONG_REASON}
     match = CLAIM_ID.search(question)
-    claim_id = match.group(0) if match else None
+    claim_id = match.group(0).upper() if match else None
     if claim_id:  # a named claim always goes through the deterministic decision pipeline
         return {'route': 'claim_decision', 'claim_id': claim_id}
     text = call_llm(ctx, 'supervisor', question, ctx.prompts.get('supervisor'))
@@ -78,6 +83,8 @@ def supervisor(state: ClaimsState, ctx: NodeContext) -> dict:
 
 
 def refuse(state: ClaimsState, ctx: NodeContext) -> dict:
+    if state.get('refusal_reason') == TOO_LONG_REASON:
+        return {'answer': TOO_LONG_ANSWER, 'approval_status': 'not_required'}
     return {'answer': REFUSAL_ANSWER, 'approval_status': 'not_required'}
 
 
@@ -105,9 +112,11 @@ def coverage_checker(state: ClaimsState, ctx: NodeContext) -> dict:
     claim = ctx.tools.get_claim(state['claim_id'])
     policy = ctx.tools.get_policy(claim['policy_id']) if claim else None
     if claim is None or policy is None:
+        # Never 'auto': a record that does not exist must not look like an auto-decided claim.
         missing = {'covered': False, 'reasons': ['claim or policy record not found'],
                    'clause_ids': [], 'payable_amount': 0.0}
-        return {'claim': claim, 'coverage': missing, 'authority': 'auto'}
+        error = 'claim_not_found' if claim is None else 'policy record not found'
+        return {'claim': claim, 'coverage': missing, 'authority': None, 'lookup_error': error}
     decision = check_coverage(claim, policy)
     update = {
         'claim': claim, 'coverage': asdict(decision),
@@ -143,7 +152,7 @@ def risk_scorer(state: ClaimsState, ctx: NodeContext) -> dict:
         applicant_id = claim['applicant_id']
     else:
         match = APPLICANT_ID.search(state.get('question', ''))
-        applicant_id = match.group(0) if match else None
+        applicant_id = match.group(0).upper() if match else None
     applicant = ctx.tools.get_applicant(applicant_id) if applicant_id else None
     if applicant is None:
         return {'risk': None, 'refusal_reason': 'applicant not found'}

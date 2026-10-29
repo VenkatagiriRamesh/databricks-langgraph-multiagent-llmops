@@ -78,7 +78,91 @@ def test_second_followup_for_same_run_returns_error_message():
     _, run_id = pending_run(agent)
     agent.predict(req(f'approve {run_id}'))
     out = text_of(agent.predict(req(f'approve {run_id}')))
-    assert 'already' in out.lower() and len(log.records) == 1
+    assert out == f'Run id {run_id} was already resolved. No action taken.'
+    assert len(log.records) == 1
+
+
+def test_never_seen_run_id_message_is_unknown():
+    agent, _ = make_agent()
+    assert text_of(agent.predict(req('approve nope'))) == 'Unknown run id nope. No action taken.'
+
+
+def test_resolved_set_is_bounded():
+    agent, _ = make_agent()
+    for i in range(1500):
+        agent._remember_resolved(f'r{i}')
+    assert len(agent._resolved) <= 1000 and 'r1499' in agent._resolved and 'r0' not in agent._resolved
+
+
+def test_concurrent_approvals_of_same_run_succeed_exactly_once():
+    import threading
+    agent, log = make_agent()
+    _, run_id = pending_run(agent)
+    barrier, outs = threading.Barrier(2), []
+
+    def worker():
+        barrier.wait()
+        outs.append(text_of(agent.predict(req(f'approve {run_id}'))))
+
+    threads = [threading.Thread(target=worker) for _ in range(2)]
+    [t.start() for t in threads]
+    [t.join() for t in threads]
+    assert len(log.records) == 1
+    assert sum('already resolved' in o for o in outs) == 1
+    assert sum('COV-01' in o for o in outs) == 1
+
+
+def test_record_carries_proposed_decision_and_decision_text():
+    agent, log = make_agent()
+    _, run_id = pending_run(agent)
+    agent.predict(req(f'approve {run_id}'))
+    rec = log.records[0]
+    assert rec.proposed_decision == 'approve_payment'
+    assert rec.decision_text.startswith('Decision: APPROVED by adjuster for claim C00001; payable ')
+
+
+def test_siu_referral_approval_is_logged_as_referral_not_payment():
+    from tests.agents.test_nodes import CLAIM
+    claim = {**CLAIM, 'amount': 4000.0, 'reported_date': '2024-05-01', 'loss_date': '2024-03-01',
+             'adjuster_notes': 'Receipts could not be verified.'}
+    agent, log = make_agent({**CLAIM_RESP, 'writer': 'Refer to SIU.'},
+                          FakeTools(claim=claim))
+    _, run_id = pending_run(agent)
+    out = text_of(agent.predict(req(f'approve {run_id}')))
+    assert 'REFERRAL TO SIU CONFIRMED for claim C00001; no payment authorised.' in out
+    rec = log.records[0]
+    assert rec.proposed_decision == 'refer_to_siu' and rec.required_authority == 'siu'
+    assert rec.decision_text == (
+        'Decision: REFERRAL TO SIU CONFIRMED for claim C00001; no payment authorised.')
+
+
+def test_auto_settled_claim_is_audited_with_run_id_and_decision_text():
+    from tests.agents.test_nodes import CLAIM
+    agent, log = make_agent(fake_tools=FakeTools(claim={**CLAIM, 'amount': 1500.0}))
+    out = text_of(agent.predict(req('Decide claim C00001')))
+    assert 'Decision: AUTO-SETTLED claim C00001; payable 1000.00;' in out
+    rec = log.records[0]
+    assert rec.decision == 'auto' and rec.claim_id == 'C00001' and rec.required_authority == 'auto'
+    assert rec.proposed_decision == 'auto_settle' and rec.payable_amount == 1000.0
+    assert rec.run_id and rec.decision_text.startswith('Decision: AUTO-SETTLED claim C00001')
+
+
+def test_auto_denied_claim_is_audited():
+    from tests.agents.test_nodes import CLAIM
+    claim = {**CLAIM, 'claim_type': 'cosmetic', 'amount': 1500.0}
+    agent, log = make_agent({**CLAIM_RESP, 'writer': 'Denied under EXC-01.'},
+                          FakeTools(claim=claim))
+    out = text_of(agent.predict(req('Decide claim C00001')))
+    assert 'Decision: AUTO-DENIED claim C00001 under EXC-01;' in out
+    rec = log.records[0]
+    assert rec.decision == 'auto' and rec.proposed_decision == 'auto_deny'
+    assert rec.payable_amount == 0.0
+
+
+def test_policy_question_and_missing_claim_are_not_audited_as_decisions():
+    agent, log = make_agent(fake_tools=FakeTools(claim=None))
+    text_of(agent.predict(req('Decide claim C00099')))
+    assert log.records == []
 
 
 @pytest.mark.parametrize('text', ['approve this claim', 'approve C00007',

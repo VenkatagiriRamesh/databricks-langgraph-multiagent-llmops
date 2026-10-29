@@ -1,5 +1,7 @@
 import re
+import threading
 import uuid
+from collections import OrderedDict
 from collections.abc import Callable
 from datetime import UTC, datetime
 
@@ -15,6 +17,7 @@ from insurance_automation.agents.approval_log import ApprovalLog, ApprovalRecord
 from insurance_automation.agents.nodes import NodeContext
 
 DECIDE = re.compile(r'^\s*(approve|reject)\s+(\S+)\s*$', re.IGNORECASE)
+MAX_RESOLVED_REMEMBERED = 1000
 EDIT = re.compile(r'^\s*edit\s+(\S+):\s*(.+?)\s*$', re.IGNORECASE | re.DOTALL)
 
 
@@ -29,6 +32,14 @@ def _last_user_text(request: ResponsesAgentRequest) -> str:
     return ''
 
 
+def _decision_line(answer: str) -> str:
+    """The final deterministic 'Decision: ...' line, or the whole answer if it has none."""
+    for line in reversed(answer.splitlines()):
+        if line.startswith('Decision:'):
+            return line
+    return answer
+
+
 class ClaimsResponsesAgent(ResponsesAgent):
     """Two-call approval: the first call returns a run id, a follow-up grammar message resumes it.
 
@@ -40,8 +51,17 @@ class ClaimsResponsesAgent(ResponsesAgent):
                  checkpointer=None):
         self.ctx_factory, self.approval_log, self.checkpointer = ctx_factory, approval_log, checkpointer
         self._graph = None
+        # Pending/resolved state is per process: a replay reaching another replica answers
+        # 'Unknown run id', which is the honest answer there (no shared store on Free Edition).
+        self._lock = threading.Lock()
         self._pending: dict[str, dict] = {}
-        self._resolved: set[str] = set()
+        self._resolved: OrderedDict[str, None] = OrderedDict()
+
+    def _remember_resolved(self, run_id: str) -> None:
+        """Caller holds no lock requirement beyond _lock use in _resolve; bounded history."""
+        self._resolved[run_id] = None
+        while len(self._resolved) > MAX_RESOLVED_REMEMBERED:
+            self._resolved.popitem(last=False)
 
     @property
     def graph(self):
@@ -53,10 +73,12 @@ class ClaimsResponsesAgent(ResponsesAgent):
         run_id = str(uuid.uuid4())
         res = agent_graph.invoke(self.graph, text, thread_id=run_id)
         if res.status != 'pending_approval':
+            self._audit_auto(run_id, res)
             return res.output.answer
         payload = res.interrupt_payload or {}
         role = payload.get('required_authority') or res.output.required_authority
-        self._pending[run_id] = payload
+        with self._lock:
+            self._pending[run_id] = payload
         return (
             f'Proposed decision for claim {payload.get("claim_id")}: '
             f'{payload.get("proposed_decision")} (payable {payload.get("payable_amount")}).\n'
@@ -66,22 +88,41 @@ class ClaimsResponsesAgent(ResponsesAgent):
             f'as an authorised {role}.'
         )
 
+    def _audit_auto(self, run_id: str, res) -> None:
+        if res.output.route != 'claim_decision' or res.output.required_authority != 'auto':
+            return
+        line = _decision_line(res.output.answer)
+        if not line.startswith('Decision: AUTO-'):
+            return
+        state = self.graph.get_state({'configurable': {'thread_id': run_id}}).values
+        coverage = state.get('coverage') or {}
+        self.approval_log.append(ApprovalRecord(
+            run_id, state.get('claim_id'), 'auto', 'auto', datetime.now(UTC).isoformat(),
+            float(coverage.get('payable_amount') or 0.0), '',
+            'auto_settle' if line.startswith('Decision: AUTO-SETTLED') else 'auto_deny', line,
+        ))
+
     def _resolve(self, run_id: str, decision: str, edit_text: str = '') -> str:
-        if run_id in self._resolved:
-            return f'Run id {run_id} was already resolved. No action taken.'
-        payload = self._pending.get(run_id)
-        if payload is None:
-            return f'Unknown run id {run_id}. No action taken.'
+        with self._lock:  # claim the run so a concurrent or replayed approval cannot also win
+            if run_id in self._resolved:
+                return f'Run id {run_id} was already resolved. No action taken.'
+            payload = self._pending.pop(run_id, None)
+            if payload is None:
+                return f'Unknown run id {run_id}. No action taken.'
+            self._remember_resolved(run_id)
         try:
             res = agent_graph.resume(self.graph, run_id, decision, edit_text)
-        except ValueError as exc:
-            return f'Cannot resume run id {run_id}: {exc}'
-        del self._pending[run_id]
-        self._resolved.add(run_id)
+        except Exception as exc:
+            with self._lock:  # the run did not complete: put it back so it can be retried
+                self._resolved.pop(run_id, None)
+                self._pending[run_id] = payload
+            if isinstance(exc, ValueError):
+                return f'Cannot resume run id {run_id}: {exc}'
+            raise
         self.approval_log.append(ApprovalRecord(
             run_id, payload.get('claim_id'), payload.get('required_authority'), decision,
             datetime.now(UTC).isoformat(), float(payload.get('payable_amount') or 0.0),
-            edit_text,
+            edit_text, payload.get('proposed_decision') or '', _decision_line(res.output.answer),
         ))
         return res.output.answer
 

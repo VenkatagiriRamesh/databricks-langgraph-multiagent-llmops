@@ -12,6 +12,8 @@ class ApprovalRecord:
     decided_at: str
     payable_amount: float
     edit_text: str = ''
+    proposed_decision: str = ''
+    decision_text: str = ''
 
 
 class ApprovalLog(Protocol):
@@ -36,8 +38,17 @@ def ensure_table_sql(table: str) -> str:
     return (
         f'CREATE TABLE IF NOT EXISTS {table} (run_id STRING, claim_id STRING, '
         'required_authority STRING, decision STRING, decided_at TIMESTAMP, '
-        'payable_amount DOUBLE, edit_text STRING)'
+        'payable_amount DOUBLE, edit_text STRING, proposed_decision STRING, '
+        'decision_text STRING)'
     )
+
+
+def migrate_table_sql(table: str) -> list[str]:
+    """Statements that bring a table created before these columns existed up to date."""
+    return [
+        f'ALTER TABLE {table} ADD COLUMNS IF NOT EXISTS (proposed_decision STRING)',
+        f'ALTER TABLE {table} ADD COLUMNS IF NOT EXISTS (decision_text STRING)',
+    ]
 
 
 class SqlApprovalLog:
@@ -49,7 +60,8 @@ class SqlApprovalLog:
             f'INSERT INTO {self.table} VALUES ({_lit(record.run_id)}, {_lit(record.claim_id)}, '
             f'{_lit(record.required_authority)}, {_lit(record.decision)}, '
             f'CAST({_lit(record.decided_at)} AS TIMESTAMP), {float(record.payable_amount)}, '
-            f'{_lit(record.edit_text)})'
+            f'{_lit(record.edit_text)}, {_lit(record.proposed_decision)}, '
+            f'{_lit(record.decision_text)})'
         )
         self.run_sql(stmt, self.warehouse_id)
 

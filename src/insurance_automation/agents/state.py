@@ -24,3 +24,4 @@ class ClaimsState(TypedDict, total=False):
     evidence_ids: list[str]
     tools_called: list[str]
     notes_flagged: bool
+    lookup_error: str | None  # set when the claim or its policy record could not be loaded

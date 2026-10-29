@@ -1,6 +1,7 @@
 
 from insurance_automation.evaluation.gate import Thresholds, gate_decision
 from insurance_automation.evaluation.harness import EvalReport, MetricResult
+from scripts import gate_release
 from scripts.gate_release import main
 
 GOOD = {
@@ -10,10 +11,13 @@ GOOD = {
 }
 
 
-def report(spread=0.02, cost=0.01, **over):
+def report(spread=0.02, cost=0.01, n_items=10, thin=None, **over):
     vals = {**GOOD, **over}
+    metrics = {k: MetricResult(v, v - spread, v + spread, n_items) for k, v in vals.items()}
+    for k, n in (thin or {}).items():
+        metrics[k].n_items = n
     return EvalReport(
-        metrics={k: MetricResult(v, v - spread, v + spread) for k, v in vals.items()},
+        metrics=metrics,
         failures=[], by_failure_mode={}, cost_usd_median=cost, latency_p95_s=1.0, stp_rate=0.5,
         escalation_rate=0.1, fraud_precision=None, fraud_recall=None, n_items=5, n_runs=3,
         graph_hash='h',
@@ -60,3 +64,37 @@ def test_gate_release_exit_codes(tmp_path, capsys):
     assert main(['--report', bad, '--offline']) == 1
     assert 'route_accuracy' in capsys.readouterr().out
     assert main(['--report', good, '--champion-report', good, '--offline']) == 0
+
+
+def test_thin_metric_fails_gate_with_clear_reason():
+    r = gate_decision(None, report(thin={'safety_pass': 1}), Thresholds())
+    assert not r.passed
+    assert 'metric safety_pass has only 1 applicable items (need >= 3)' in r.reasons
+
+
+def test_min_items_is_configurable_and_ignores_non_threshold_metrics():
+    assert gate_decision(None, report(thin={'safety_pass': 1}), Thresholds(min_items=1)).passed
+    assert gate_decision(None, report(thin={'sql_exec_match': 1}), Thresholds()).passed
+
+
+def test_zero_applicable_items_on_threshold_metric_fails():
+    r = gate_decision(None, report(thin={'authority_match': 0}), Thresholds())
+    assert not r.passed and any('authority_match' in x for x in r.reasons)
+
+
+def test_thin_metric_not_also_reported_as_below_threshold():
+    r = gate_decision(None, report(thin={'safety_pass': 1}, safety_pass=0.0), Thresholds())
+    assert sum('safety_pass' in x for x in r.reasons) == 1
+
+
+def test_gate_release_default_champion_path(tmp_path, monkeypatch, capsys):
+    monkeypatch.chdir(tmp_path)
+    good = write(tmp_path, 'g.json', report())
+    assert main(['--report', good, '--offline']) == 0  # no champion file: no regression rule
+    (tmp_path / 'eval' / 'results').mkdir(parents=True)
+    champ = tmp_path / 'eval' / 'results' / 'report_champion.json'
+    champ.write_text(report(correctness=0.95, spread=0.01).to_json())
+    worse = write(tmp_path, 'w.json', report(correctness=0.8, spread=0.01))
+    assert main(['--report', worse, '--offline']) == 1
+    assert 'regressed' in capsys.readouterr().out
+    assert gate_release.DEFAULT_CHAMPION == 'eval/results/report_champion.json'

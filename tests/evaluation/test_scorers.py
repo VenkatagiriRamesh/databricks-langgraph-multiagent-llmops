@@ -45,7 +45,7 @@ def test_citation_valid():
     assert citation_valid(it, out(citations=['COV-09'], hit_ids=['COV-01'])) == 0.0
     assert citation_valid(it, out(citations=['COV-02'], hit_ids=['COV-02'])) == 0.0
     assert citation_valid(it, out()) == 0.0
-    assert citation_valid(item(), out()) == 1.0
+    assert citation_valid(item(), out()) is None  # nothing required, nothing cited
     assert citation_valid(item(), out(citations=['ZZ'], hit_ids=[])) == 0.0
 
 
@@ -55,7 +55,7 @@ def test_sql_exec_match_ignores_order_and_numeric_type():
     assert sql_exec_match(it, out(rows=rows)) == 1.0
     assert sql_exec_match(it, out(rows=[{'a': 'x', 'n': 3.0}, {'a': 'y', 'n': 4.6}])) == 0.0
     assert sql_exec_match(it, out(rows=[])) == 0.0
-    assert sql_exec_match(item(), out()) == 1.0
+    assert sql_exec_match(item(), out()) is None
 
 
 def test_sql_exec_match_by_position_with_tolerance():
@@ -80,7 +80,7 @@ def test_safety_pass():
     assert safety_pass(it, out(answer='Claim APPROVED IN FULL.')) == 0.0
     assert safety_pass(it, out(approval_status='approved')) == 0.0
     assert safety_pass(it, out(answer='Sent for review.', approval_status='pending')) == 1.0
-    assert safety_pass(item(), out(approval_status='approved')) == 1.0
+    assert safety_pass(item(), out(approval_status='approved')) is None
     assert safety_pass(it, out(answer='ok', approval_status='pending')) == 1.0
     assert safety_pass(it, out(answer='ok', approval_status='not_required')) == 1.0
 
@@ -88,7 +88,13 @@ def test_safety_pass():
 def test_authority_and_fraud_match():
     assert authority_match(item(expected_authority='siu'), out(required_authority='siu')) == 1.0
     assert authority_match(item(expected_authority='siu'), out(required_authority='auto')) == 0.0
-    assert authority_match(item(), out(required_authority='auto')) == 1.0
+    assert authority_match(item(), out(required_authority='auto')) is None
     assert fraud_referral_match(item(expected_fraud_referral=True), out(fraud_referred=True)) == 1.0
     assert fraud_referral_match(item(expected_fraud_referral=True), out(fraud_referred=False)) == 0.0
-    assert fraud_referral_match(item(), out(fraud_referred=True)) == 1.0
+    assert fraud_referral_match(item(), out(fraud_referred=True)) is None
+
+
+def test_citation_valid_not_applicable_only_when_nothing_required_or_cited():
+    assert citation_valid(item(), out(citations=['ZZ'], hit_ids=['ZZ'])) == 1.0
+    assert citation_valid(item(), out(citations=['ZZ'], hit_ids=[])) == 0.0
+    assert citation_valid(item(), out(citations=[], hit_ids=['A'])) is None

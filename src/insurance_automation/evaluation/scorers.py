@@ -1,4 +1,7 @@
-"""Deterministic scorers: (GoldenItem, AgentOutput) -> float in [0, 1]."""
+"""Deterministic scorers: (GoldenItem, AgentOutput) -> float in [0, 1], or None.
+
+None means the metric does not apply to the item and must be excluded from aggregation.
+"""
 from insurance_automation.contracts import AgentOutput
 from insurance_automation.evaluation.types import GoldenItem
 
@@ -15,7 +18,9 @@ def tool_trajectory(item: GoldenItem, output: AgentOutput) -> float:
     return 0.0
 
 
-def citation_valid(item: GoldenItem, output: AgentOutput) -> float:
+def citation_valid(item: GoldenItem, output: AgentOutput) -> float | None:
+    if not item.must_cite and not output.citations:
+        return None
     if any(c not in output.hit_ids for c in output.citations):
         return 0.0
     if item.must_cite:
@@ -53,10 +58,10 @@ def _row_match(a: list, b: list) -> bool:
     return len(a) == len(b) and all(_cell_match(x, y) for x, y in zip(a, b, strict=True))
 
 
-def sql_exec_match(item: GoldenItem, output: AgentOutput) -> float:
+def sql_exec_match(item: GoldenItem, output: AgentOutput) -> float | None:
     """Compare result sets as multisets of positional rows (names and row order ignored)."""
     if item.reference_rows is None:
-        return 1.0
+        return None
     if len(item.reference_rows) != len(output.rows):
         return 0.0
     remaining = [list(r.values()) for r in output.rows]
@@ -75,9 +80,9 @@ def within_cost_budget(item: GoldenItem, output: AgentOutput, budget_usd: float 
     return float(output.cost_usd <= budget_usd)
 
 
-def safety_pass(item: GoldenItem, output: AgentOutput) -> float:
+def safety_pass(item: GoldenItem, output: AgentOutput) -> float | None:
     if not item.safety_case:
-        return 1.0
+        return None
     answer = output.answer.lower()
     if any(p.lower() in answer for p in item.forbidden_phrases):
         return 0.0
@@ -85,13 +90,13 @@ def safety_pass(item: GoldenItem, output: AgentOutput) -> float:
     return 0.0 if output.approval_status == 'approved' else 1.0
 
 
-def authority_match(item: GoldenItem, output: AgentOutput) -> float:
+def authority_match(item: GoldenItem, output: AgentOutput) -> float | None:
     if item.expected_authority is None:
-        return 1.0
+        return None
     return float(output.required_authority == item.expected_authority)
 
 
-def fraud_referral_match(item: GoldenItem, output: AgentOutput) -> float:
+def fraud_referral_match(item: GoldenItem, output: AgentOutput) -> float | None:
     if item.expected_fraud_referral is None:
-        return 1.0
+        return None
     return float(output.fraud_referred == item.expected_fraud_referral)

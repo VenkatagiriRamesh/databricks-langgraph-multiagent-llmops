@@ -174,11 +174,11 @@ def test_siu_referral_forces_siu_authority_regardless_of_amount():
 
 
 def test_writer_includes_only_available_evidence_ids():
-    ctx, _, llm, _ = make_ctx({'writer': 'Per WAIT-01 and FAKE-99.'})
+    ctx, _, llm, _ = make_ctx({'writer': 'Per WAIT-01 and EXC-99.'})
     hits = [{'doc_id': 'WAIT-01', 'title': 't', 'snippet': 's'}]
     out = nodes.writer({'question': 'q', 'hits': hits, 'evidence_ids': ['WAIT-01']}, ctx)
     assert out['evidence_ids'] == ['WAIT-01']
-    assert out['citations'] == ['WAIT-01', 'FAKE-99']
+    assert out['citations'] == ['WAIT-01', 'EXC-99']
     assert 'WAIT-01' in llm.calls[0]['prompt']
 
 
@@ -268,3 +268,69 @@ def test_writer_does_not_add_footer_without_evidence_ids():
     ctx, _, _, _ = make_ctx({'writer': 'Total claims: 1000.'})
     out = nodes.writer({'question': 'q', 'evidence_ids': []}, ctx)
     assert out['citations'] == [] and 'Clauses relied on' not in out['draft']
+
+
+@pytest.mark.parametrize('question,expected', [
+    ('Decide claim C000123', None),
+    ('Decide claim c00012', 'C00012'),
+    ('Decide claim XC00012 please', None),
+    ('Decide claim C00012.', 'C00012'),
+])
+def test_claim_id_is_word_bounded_and_case_normalised(question, expected):
+    ctx, _, _, _ = make_ctx({'supervisor': 'refuse'})
+    out = nodes.supervisor({'question': question}, ctx)
+    if expected:
+        assert out == {'route': 'claim_decision', 'claim_id': expected}
+    else:
+        assert out.get('claim_id') is None and out['route'] != 'claim_decision'
+
+
+@pytest.mark.parametrize('question,expected', [
+    ('risk for A0001', 'A0001'), ('risk for a0001', 'A0001'), ('risk for A00012', None),
+])
+def test_applicant_id_is_word_bounded_and_case_normalised(question, expected):
+    seen = []
+    ft = FakeTools()
+    tools = ft.tools()
+    tools.get_applicant = lambda aid: seen.append(aid) or None
+    ctx, _, _, _ = make_ctx(fake_tools=ft)
+    ctx.tools = tools
+    nodes.risk_scorer({'question': question}, ctx)
+    assert seen == ([expected] if expected else [])
+
+
+def test_citation_id_only_matches_known_clause_prefixes():
+    ctx, _, _, _ = make_ctx({'writer': 'COVID-19 is not a clause; see COV-01 and PRIV-02.'})
+    out = nodes.writer({'question': 'q', 'evidence_ids': ['COV-01']}, ctx)
+    assert out['citations'] == ['COV-01', 'PRIV-02']
+
+
+def test_unknown_claim_is_not_auto_and_flags_lookup_error():
+    ctx, _, _, _ = make_ctx(fake_tools=FakeTools(claim=None))
+    state = {'question': 'q', 'claim_id': 'C00099', 'tools_called': []}
+    out = nodes.coverage_checker(state, ctx)
+    assert out['authority'] is None and out['lookup_error'] == 'claim_not_found'
+
+
+def test_unknown_claim_through_graph_answers_not_found_without_approval():
+    from insurance_automation.agents.graph import build_graph, invoke
+    ctx, _, _, _ = make_ctx({'supervisor': 'claim_decision', 'writer': 'Approve it!',
+                             'critic': '{"verdict":"pass","reason":"ok"}'},
+                            FakeTools(claim=None))
+    res = invoke(build_graph(ctx), 'Decide claim C00099', 'nf1')
+    assert res.status == 'done' and res.output.answer == 'Claim C00099 was not found.'
+    assert res.output.required_authority is None and res.output.approval_status == 'not_required'
+
+
+def test_overlong_question_refused_before_any_llm_call():
+    from insurance_automation.agents.graph import build_graph, invoke
+    ctx, _, llm, _ = make_ctx({'supervisor': 'policy'})
+    res = invoke(build_graph(ctx), 'x' * 2001 + ' C00001', 'long1')
+    assert res.output.answer == 'The question is too long. Please shorten it.'
+    assert res.output.route == 'refuse' and llm.calls == []
+
+
+def test_question_of_exactly_2000_chars_is_not_refused_as_too_long():
+    ctx, _, _, _ = make_ctx({'supervisor': 'policy'})
+    out = nodes.supervisor({'question': 'x' * 2000}, ctx)
+    assert out['route'] == 'policy'

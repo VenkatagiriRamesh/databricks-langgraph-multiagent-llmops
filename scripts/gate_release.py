@@ -3,10 +3,13 @@
 Usage: python -m scripts.gate_release --report eval/results/latest_report.json --offline
 """
 import argparse
+import os
 import sys
 
 from insurance_automation.evaluation.gate import Thresholds, gate_decision
 from insurance_automation.evaluation.harness import EvalReport
+
+DEFAULT_CHAMPION = 'eval/results/report_champion.json'
 
 
 def _load(path: str) -> EvalReport:
@@ -17,12 +20,16 @@ def _load(path: str) -> EvalReport:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument('--report', required=True)
-    parser.add_argument('--champion-report')
+    parser.add_argument(
+        '--champion-report',
+        help=f'defaults to {DEFAULT_CHAMPION} when that file exists')
     parser.add_argument('--offline', action='store_true')
     parser.add_argument('--model-name')
     parser.add_argument('--model-version')
     args = parser.parse_args(argv)
-    champion = _load(args.champion_report) if args.champion_report else None
+    champion_path = args.champion_report or (
+        DEFAULT_CHAMPION if os.path.exists(DEFAULT_CHAMPION) else None)
+    champion = _load(champion_path) if champion_path else None
     result = gate_decision(champion, _load(args.report), Thresholds())
     if not result.passed:
         print('GATE FAILED')

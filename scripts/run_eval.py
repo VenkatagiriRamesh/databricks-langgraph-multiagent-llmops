@@ -14,15 +14,16 @@ DEFAULT_GOLDEN = 'eval/golden_set.jsonl'
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument('--split', choices=['dev', 'heldout'], default='dev')
-    parser.add_argument('--runs', type=int, default=3)
+    parser.add_argument(
+        '--runs', type=int, default=1,
+        help='repeat runs; at temperature 0 the LLM cache makes runs 2..N deterministic '
+             'replays of run 1, so more than 1 adds no information unless sampling is enabled')
     parser.add_argument('--golden', default=DEFAULT_GOLDEN)
     parser.add_argument('--prompt', action='append', default=[], metavar='NAME=TEXT',
                         help='override a prompt for a challenger experiment')
     parser.add_argument('--report-out', default='eval/results/latest_report.json')
     args = parser.parse_args(argv)
 
-    import hashlib
-    import json
     import pathlib
 
     import mlflow
@@ -35,7 +36,7 @@ def main(argv: list[str] | None = None) -> int:
     )
     from insurance_automation.common.config import load_config
     from insurance_automation.evaluation.golden import load_golden
-    from insurance_automation.evaluation.harness import make_runner, run_eval
+    from insurance_automation.evaluation.harness import compute_graph_hash, make_runner, run_eval
     from insurance_automation.evaluation.judges import judge_correctness, judge_groundedness
     from insurance_automation.runtime import build_live_context
 
@@ -59,15 +60,12 @@ def main(argv: list[str] | None = None) -> int:
         }
 
     # Results are cached per graph_hash, so it must change whenever behaviour can change.
-    code = hashlib.sha256()
-    for sub in ('agents', 'tools'):
-        for path in sorted(pathlib.Path('src/insurance_automation', sub).glob('*.py')):
-            code.update(path.read_bytes())
-    fingerprint = json.dumps(
-        {'model': cfg.fm_model, 'code': code.hexdigest(),
-         'prompts': {n: prompts.get(n) for n in sorted(DEFAULT_PROMPTS)}},
-        sort_keys=True)
-    graph_hash = hashlib.sha256(fingerprint.encode()).hexdigest()[:10]
+    src = pathlib.Path('src/insurance_automation')
+    paths = [p for sub in ('agents', 'tools', 'llm') for p in sorted((src / sub).glob('*.py'))]
+    paths += [src / 'runtime.py', src / 'evaluation' / 'judges.py']
+    graph_hash = compute_graph_hash(
+        paths, {n: prompts.get(n) for n in sorted(DEFAULT_PROMPTS)}, cfg.fm_model,
+        pathlib.Path(args.golden).read_text(encoding='utf-8'))
     os.makedirs(os.path.dirname(args.report_out) or '.', exist_ok=True)
     results = os.path.join(os.path.dirname(args.report_out) or '.', f'results_{args.split}.jsonl')
     report = run_eval(runner, items, n_runs=args.runs, judge=judge, results_path=results,

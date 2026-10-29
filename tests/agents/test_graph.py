@@ -142,3 +142,21 @@ def test_cost_is_ledger_delta_when_available():
     ledger.total_usd = lambda: next(totals)
     res = invoke(build_graph(ctx), 'Decide claim C00001', 't11')
     assert res.output.cost_usd == pytest.approx(0.5)
+
+
+def test_small_denial_answer_ends_with_deterministic_auto_denied_line():
+    ft = FakeTools(claim={**CLAIM, 'claim_type': 'cosmetic', 'amount': 1500.0})
+    ctx, _, _, _ = make_ctx({**CLAIM_RESP, 'writer': 'Denied under EXC-01.'}, ft)
+    res = invoke(build_graph(ctx), 'Decide claim C00001', 't11')
+    assert res.output.answer.endswith(
+        'Decision: AUTO-DENIED claim C00001 under EXC-01; no human sign-off required (below 2,000).')
+
+
+def test_small_covered_claim_answer_ends_with_auto_settled_line():
+    ft = FakeTools(claim={**CLAIM, 'amount': 1500.0})
+    ctx, _, _, _ = make_ctx(CLAIM_RESP, ft)
+    res = invoke(build_graph(ctx), 'Decide claim C00001', 't12')
+    assert res.status == 'done'
+    assert res.output.answer.endswith(
+        'Decision: AUTO-SETTLED claim C00001; payable 1000.00; '
+        'no human sign-off required (below 2,000).')

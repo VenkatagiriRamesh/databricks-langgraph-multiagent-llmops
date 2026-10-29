@@ -85,3 +85,73 @@ def test_payment_gate_payload_says_approve_means_approve_payment():
     payload = res['__interrupt__'][0].value
     assert payload['proposed_decision'] == 'approve_payment'
     assert payload['approve_means'] == 'approve_payment'
+
+
+def _siu_state(**kw):
+    return {
+        'claim_id': 'C00031', 'authority': 'siu', 'draft': 'Suspicious pattern.',
+        'claim': {'amount': 7000.0},
+        'coverage': {'covered': True, 'payable_amount': 6927.31},
+        'fraud': {'refer_to_siu': True, 'flags': [{'code': 'LATE'}]}, **kw,
+    }
+
+
+def test_siu_gate_payload_is_a_referral_not_a_payment():
+    graph = _gate_graph()
+    res = graph.invoke(_siu_state(), {'configurable': {'thread_id': 's0'}})
+    payload = res['__interrupt__'][0].value
+    assert payload['proposed_decision'] == 'refer_to_siu'
+    assert payload['approve_means'] == 'confirm_referral'
+
+
+@pytest.mark.parametrize('decision,status,text', [
+    ('approve', 'approved',
+     'Decision: REFERRAL TO SIU CONFIRMED for claim C00031; no payment authorised.'),
+    ('reject', 'rejected',
+     'Decision: SIU REFERRAL REJECTED by siu for claim C00031; return to claims handling.'),
+])
+def test_siu_referral_decisions_never_read_as_payment(decision, status, text):
+    from langgraph.types import Command
+    graph = _gate_graph()
+    cfg = {'configurable': {'thread_id': f's-{decision}'}}
+    graph.invoke(_siu_state(), cfg)
+    final = graph.invoke(Command(resume={'decision': decision}), cfg)
+    assert final['approval_status'] == status
+    assert final['answer'].endswith(text)
+    assert 'payable' not in final['answer'] and 'APPROVED' not in final['answer']
+
+
+def test_siu_edit_keeps_existing_form():
+    from langgraph.types import Command
+    graph = _gate_graph()
+    cfg = {'configurable': {'thread_id': 's-edit'}}
+    graph.invoke(_siu_state(), cfg)
+    final = graph.invoke(Command(resume={'decision': 'edit', 'edit_text': 'Edited.'}), cfg)
+    assert final['answer'] == 'Edited.\n\nDecision: EDITED by siu.'
+
+
+def test_auto_settle_appends_deterministic_decision_line():
+    out = approval_gate({
+        'authority': 'auto', 'claim_id': 'C00009', 'draft': 'Looks fine.',
+        'coverage': {'covered': True, 'payable_amount': 1234.5, 'clause_ids': ['COV-01']},
+    })
+    assert out['approval_status'] == 'not_required'
+    assert out['answer'] == (
+        'Looks fine.\n\nDecision: AUTO-SETTLED claim C00009; payable 1234.50; '
+        'no human sign-off required (below 2,000).')
+
+
+def test_auto_deny_appends_deterministic_decision_line():
+    out = approval_gate({
+        'authority': 'auto', 'claim_id': 'C00010', 'draft': 'Not covered.',
+        'coverage': {'covered': False, 'payable_amount': 0.0, 'clause_ids': ['EXC-01', 'WAIT-01']},
+    })
+    assert out['answer'] == (
+        'Not covered.\n\nDecision: AUTO-DENIED claim C00010 under EXC-01, WAIT-01; '
+        'no human sign-off required (below 2,000).')
+
+
+def test_missing_claim_gets_clear_answer_and_no_approval():
+    out = approval_gate({'authority': None, 'claim_id': 'C00099', 'draft': 'LLM waffle',
+                         'lookup_error': 'claim_not_found'})
+    assert out == {'approval_status': 'not_required', 'answer': 'Claim C00099 was not found.'}

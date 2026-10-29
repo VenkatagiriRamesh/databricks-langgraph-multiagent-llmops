@@ -6,6 +6,7 @@ Generated data is created on Databricks and never committed; only this code is.
 """
 import io
 import json
+import os
 
 from databricks.sdk import WorkspaceClient
 
@@ -17,12 +18,11 @@ from insurance_automation.data.generate import (
     generate_policy_docs,
     with_applicant_ids,
 )
+from insurance_automation.data.masks import mask_statements
 
 SOURCE_TABLE = 'insurance_rag_agent.raw.policies_raw'
 SEED = 42
 CLAIM_COUNT = 1000
-ADMIN_GROUP = 'admins'
-CLAIMS_GROUP = 'claims_role'
 
 
 def _land(client: WorkspaceClient, volume: str, name: str, rows: list[dict]) -> str:
@@ -93,20 +93,8 @@ def main() -> None:
     ), wh)
     run_sql(_ctas(f'{cur}.policy_docs', paths['policy_docs'], 'doc_id, title, section, body'), wh)
 
-    run_sql(
-        f'CREATE OR REPLACE FUNCTION {cur}.mask_notes(notes STRING) RETURNS STRING '
-        f"RETURN CASE WHEN is_member('{ADMIN_GROUP}') OR is_account_group_member('{CLAIMS_GROUP}') "
-        f"THEN notes ELSE '*** masked ***' END",
-        wh,
-    )
-    run_sql(
-        f'CREATE OR REPLACE FUNCTION {cur}.mask_applicant_id(id STRING) RETURNS STRING '
-        f"RETURN CASE WHEN is_member('{ADMIN_GROUP}') OR is_account_group_member('{CLAIMS_GROUP}') "
-        f'THEN id ELSE sha2(id, 256) END',
-        wh,
-    )
-    run_sql(f'ALTER TABLE {cur}.claims ALTER COLUMN adjuster_notes SET MASK {cur}.mask_notes', wh)
-    run_sql(f'ALTER TABLE {cur}.applicants ALTER COLUMN applicant_id SET MASK {cur}.mask_applicant_id', wh)
+    for statement in mask_statements(cur, os.environ.get('AGENT_PRINCIPAL', '')):
+        run_sql(statement, wh)
 
     for table in ('applicants', 'policies', 'claims', 'policy_docs'):
         count = run_sql(f'SELECT COUNT(*) c FROM {cur}.{table}', wh)[0]['c']
