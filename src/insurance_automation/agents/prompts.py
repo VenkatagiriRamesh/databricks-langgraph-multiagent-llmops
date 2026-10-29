@@ -49,3 +49,28 @@ class LocalPromptStore:
         if name not in self._prompts:
             raise KeyError(f'unknown prompt {name!r}; known prompts: {sorted(self._prompts)}')
         return self._prompts[name]
+
+
+class RegistryPromptStore:
+    """Loads prompts from the MLflow Prompt Registry; falls back to a local store on any failure."""
+
+    def __init__(self, schema: str, alias: str = 'production',
+                 fallback: PromptStore | None = None):
+        self.schema, self.alias = schema, alias
+        self._fallback = fallback or LocalPromptStore(DEFAULT_PROMPTS)
+        self._cache: dict[str, tuple[str, str]] = {}
+
+    def get(self, name: str) -> str:
+        if name not in self._cache:
+            try:
+                import mlflow.genai
+
+                uri = f'prompts:/{self.schema}.{name}@{self.alias}'
+                self._cache[name] = (mlflow.genai.load_prompt(uri).template, 'registry')
+            except Exception:  # noqa: BLE001 - any registry failure must degrade to local
+                self._cache[name] = (self._fallback.get(name), 'local')
+        return self._cache[name][0]
+
+    def source(self, name: str) -> str:
+        self.get(name)
+        return self._cache[name][1]

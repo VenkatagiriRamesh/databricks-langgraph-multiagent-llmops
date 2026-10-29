@@ -32,3 +32,11 @@ def test_unknown_model_prices_at_zero():
     ledger.record('a', LLMResult('x', 1_000_000, 1_000_000))
     assert ledger.priced is False
     assert ledger.total_usd() == 0.0
+
+
+def test_total_tokens_sums_across_nodes():
+    ledger = CostLedger(MODEL)
+    assert ledger.total_tokens() == (0, 0)
+    ledger.record('a', LLMResult('x', 10, 5))
+    ledger.record('b', LLMResult('x', 20, 7))
+    assert ledger.total_tokens() == (30, 12)

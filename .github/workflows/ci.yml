@@ -13,3 +13,7 @@ jobs:
       - run: pip install -e '.[dev]'
       - run: ruff check .
       - run: pytest -q
+      - run: |
+          if [ -f eval/results/latest_report.json ]; then
+            python -m scripts.gate_release --report eval/results/latest_report.json --offline
+          fi

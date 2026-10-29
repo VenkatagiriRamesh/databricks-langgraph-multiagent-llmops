@@ -1,8 +1,10 @@
 import time
+from contextlib import nullcontext
 from dataclasses import dataclass
 from functools import partial
 from typing import Literal
 
+import mlflow
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 from langgraph.types import Command
@@ -11,6 +13,7 @@ from insurance_automation.agents import nodes
 from insurance_automation.agents.approval import approval_gate
 from insurance_automation.agents.nodes import ESCALATION_ANSWER, NodeContext
 from insurance_automation.agents.state import ClaimsState
+from insurance_automation.agents.tracing import traced_node
 from insurance_automation.contracts import AgentOutput
 
 MAX_RETRIES = 2
@@ -35,12 +38,16 @@ def _after_critic(state: ClaimsState) -> str:
     return 'writer' if state.get('retries', 0) < MAX_RETRIES else 'escalate'
 
 
-def build_graph(ctx: NodeContext, checkpointer=None):
+def build_graph(ctx: NodeContext, checkpointer=None, tracing: bool = True):
     g = StateGraph(ClaimsState)
+
+    def add(name, fn):
+        g.add_node(name, traced_node(name, fn, ctx.ledger) if tracing else fn)
+
     for name in ('supervisor', 'refuse', 'sql_analyst', 'policy_rag', 'coverage_checker',
                  'fraud_screener', 'risk_scorer', 'writer', 'critic', 'escalate'):
-        g.add_node(name, partial(getattr(nodes, name), ctx=ctx))
-    g.add_node('approval_gate', approval_gate)
+        add(name, partial(getattr(nodes, name), ctx=ctx))
+    add('approval_gate', approval_gate)
     g.add_edge(START, 'supervisor')
     g.add_conditional_edges('supervisor', lambda s: FIRST_NODE[s['route']], list(FIRST_NODE.values()))
     g.add_edge('sql_analyst', 'writer')
@@ -53,8 +60,13 @@ def build_graph(ctx: NodeContext, checkpointer=None):
     for end in ('refuse', 'escalate', 'approval_gate'):
         g.add_edge(end, END)
     graph = g.compile(checkpointer=checkpointer or MemorySaver())
+    graph.tracing = tracing
     graph.ledger = ctx.ledger  # read by invoke/resume to measure cost
     return graph
+
+
+def _root(name: str, graph):
+    return mlflow.start_span(name=name, span_type='AGENT') if graph.tracing else nullcontext()
 
 
 def _initial(question: str) -> ClaimsState:
@@ -102,7 +114,8 @@ def invoke(graph, question: str, thread_id: str) -> GraphResult:
     config = {'configurable': {'thread_id': thread_id}}
     ledger = graph.ledger
     started, before = time.perf_counter(), _ledger_total(ledger)
-    graph.invoke(_initial(question), config)
+    with _root('invoke', graph):
+        graph.invoke(_initial(question), config)
     return _result(graph, config, started, before, ledger)
 
 
@@ -115,5 +128,6 @@ def resume(graph, thread_id: str, decision: str, edit_text: str = '') -> GraphRe
         raise ValueError(f'thread {thread_id} has no pending approval')
     ledger = graph.ledger
     started, before = time.perf_counter(), _ledger_total(ledger)
-    graph.invoke(Command(resume={'decision': decision, 'edit_text': edit_text}), config)
+    with _root('resume', graph):
+        graph.invoke(Command(resume={'decision': decision, 'edit_text': edit_text}), config)
     return _result(graph, config, started, before, ledger)

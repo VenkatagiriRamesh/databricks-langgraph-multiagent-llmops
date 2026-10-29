@@ -1,4 +1,7 @@
 """MLflow pyfunc wrapper so the risk model can be registered in Unity Catalog and loaded by alias."""
+import json
+from dataclasses import asdict
+
 import mlflow.pyfunc
 import pandas as pd
 
@@ -15,4 +18,5 @@ class RiskModelPyfunc(mlflow.pyfunc.PythonModel):
             'probability': [s.probability for s in scores],
             'band': [s.band for s in scores],
             'top_reason': [s.reason_codes[0].feature if s.reason_codes else '' for s in scores],
+            'reason_codes': [json.dumps([asdict(c) for c in s.reason_codes]) for s in scores],
         })

@@ -40,5 +40,9 @@ class CostLedger:
     def total_usd(self) -> float:
         return sum(c.usd for c in self._nodes.values())
 
+    def total_tokens(self) -> tuple[int, int]:
+        nodes = self._nodes.values()
+        return sum(c.tokens_in for c in nodes), sum(c.tokens_out for c in nodes)
+
     def reset(self) -> None:
         self._nodes.clear()

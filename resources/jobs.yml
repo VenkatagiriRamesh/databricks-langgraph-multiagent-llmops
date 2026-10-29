@@ -1,1 +1,47 @@
-# placeholder, jobs are added in Task 10
+resources:
+  jobs:
+    release_pipeline:
+      name: insurance_automation_release_pipeline
+      environments:
+        - environment_key: default
+          spec:
+            environment_version: "2"
+            dependencies:
+              - "-e ${workspace.file_path}"
+      parameters:
+        - name: warehouse_id
+          default: ${var.warehouse_id}
+        - name: catalog
+          default: ${var.catalog}
+        - name: fm_model
+          default: ${var.fm_model}
+      tasks:
+        - task_key: bootstrap_data
+          environment_key: default
+          spark_python_task:
+            python_file: ${workspace.file_path}/scripts/bootstrap_data.py
+        - task_key: train_register_model
+          depends_on:
+            - task_key: bootstrap_data
+          environment_key: default
+          spark_python_task:
+            python_file: ${workspace.file_path}/scripts/train_register_model.py
+        - task_key: run_eval
+          depends_on:
+            - task_key: train_register_model
+          environment_key: default
+          spark_python_task:
+            python_file: ${workspace.file_path}/scripts/run_eval.py
+        - task_key: gate_release
+          depends_on:
+            - task_key: run_eval
+          environment_key: default
+          spark_python_task:
+            python_file: ${workspace.file_path}/scripts/gate_release.py
+        - task_key: deploy_agent_endpoint
+          depends_on:
+            - task_key: gate_release
+          environment_key: default
+          spark_python_task:
+            python_file: ${workspace.file_path}/scripts/deploy_agent_endpoint.py
+            parameters: ["--deploy"]
