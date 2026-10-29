@@ -21,6 +21,7 @@ def main(argv: list[str] | None = None) -> int:
 
     import hashlib
     import json
+    import pathlib
 
     import mlflow
 
@@ -50,8 +51,13 @@ def main(argv: list[str] | None = None) -> int:
         }
 
     # Results are cached per graph_hash, so it must change whenever behaviour can change.
+    code = hashlib.sha256()
+    for sub in ('agents', 'tools'):
+        for path in sorted(pathlib.Path('src/insurance_automation', sub).glob('*.py')):
+            code.update(path.read_bytes())
     fingerprint = json.dumps(
-        {'model': cfg.fm_model, 'prompts': {n: prompts.get(n) for n in sorted(DEFAULT_PROMPTS)}},
+        {'model': cfg.fm_model, 'code': code.hexdigest(),
+         'prompts': {n: prompts.get(n) for n in sorted(DEFAULT_PROMPTS)}},
         sort_keys=True)
     graph_hash = hashlib.sha256(fingerprint.encode()).hexdigest()[:10]
     os.makedirs(os.path.dirname(args.report_out) or '.', exist_ok=True)
