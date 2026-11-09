@@ -62,7 +62,7 @@ def traced_node(name: str, fn: Callable[[dict], dict], ledger,
                     version = getattr(prompts, 'version', None)
                     span.set_attribute('prompt_version', (version(name) if version else None)
                                        or prompts.source(name))
-                except Exception:  # noqa: BLE001 - metadata must never fail a node
+                except Exception:  # noqa: BLE001, S110 - metadata must never fail a node
                     pass
             try:
                 result = fn(state)

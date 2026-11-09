@@ -29,7 +29,7 @@ class RuntimeBreaker:
         try:
             flag = self.read_flag()
             self._value, self._read_at = ('safe' if flag == 'safe' else 'normal'), now
-        except Exception:  # noqa: BLE001 - a Lakebase outage must not break answering
+        except Exception:  # noqa: BLE001, S110 - a Lakebase outage must not break answering
             pass
         return self._current(now)
 

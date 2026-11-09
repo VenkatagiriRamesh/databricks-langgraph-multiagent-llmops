@@ -1,8 +1,8 @@
 import pytest
 
+from insurance_automation.agents.approval_log import InMemoryApprovalLog
 from insurance_automation.agents.breaker import RuntimeBreaker
 from insurance_automation.agents.checkpoint import make_checkpointer
-from insurance_automation.agents.approval_log import InMemoryApprovalLog
 from insurance_automation.agents.serving import ClaimsResponsesAgent
 from tests.agents.test_graph import CLAIM_RESP
 from tests.agents.test_nodes import FakeTools, make_ctx
@@ -36,7 +36,7 @@ def test_breaker_last_known_then_fail_safe():
     def read():
         if state['fail']:
             raise RuntimeError('lakebase down')
-        return None  # no flag: normal
+        # no flag: normal
 
     b = RuntimeBreaker(read, ttl_s=30, stale_after_s=300, clock=clock)
     assert b.mode() == 'normal'
