@@ -97,3 +97,47 @@ def test_overlay_prompt_store_rejects_unknown_override_names():
     store = OverlayPromptStore(LocalPromptStore({'writer': 'w'}), {'nonsense': 'x'})
     with pytest.raises(KeyError):
         store.get('nonsense')
+
+
+class FakeClock:
+    def __init__(self):
+        self.t = 0.0
+
+    def __call__(self):
+        return self.t
+
+
+def test_registry_store_reloads_after_ttl():
+    clock, texts = FakeClock(), iter(['v1 text', 'v2 text'])
+
+    class P:
+        def __init__(self, t, v):
+            self.template, self.version = t, v
+
+    n = {'i': 0}
+
+    def loader(uri):
+        n['i'] += 1
+        return P(next(texts), n['i'])
+
+    store = RegistryPromptStore('c.e', ttl_s=300, clock=clock, loader=loader)
+    assert store.get('writer') == 'v1 text'
+    clock.t = 299
+    assert store.get('writer') == 'v1 text' and n['i'] == 1
+    clock.t = 301
+    assert store.get('writer') == 'v2 text' and store.version('writer') == 'registry:2'
+
+
+def test_registry_store_keeps_last_good_on_reload_failure():
+    clock, state = FakeClock(), {'fail': False}
+
+    def loader(uri):
+        if state['fail']:
+            raise RuntimeError('registry down')
+        return Loaded()
+
+    store = RegistryPromptStore('c.e', ttl_s=10, clock=clock, loader=loader)
+    assert store.get('writer') == 'REGISTRY TEXT'
+    state['fail'] = True
+    clock.t = 11
+    assert store.get('writer') == 'REGISTRY TEXT' and store.source('writer') == 'registry'

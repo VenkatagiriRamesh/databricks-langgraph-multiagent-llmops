@@ -1,3 +1,4 @@
+import time
 from typing import Protocol
 
 from insurance_automation.contracts import ROUTES
@@ -53,28 +54,54 @@ class LocalPromptStore:
 
 
 class RegistryPromptStore:
-    """Loads prompts from the MLflow Prompt Registry; falls back to a local store on any failure."""
+    """Loads prompts from the MLflow Prompt Registry, reloading after `ttl_s` seconds.
+
+    Moving the registry alias therefore changes a deployed agent within one TTL, with no
+    redeploy. If a reload fails the last good template is kept; the local fallback is used only
+    for a prompt that has never loaded from the registry.
+    """
 
     def __init__(self, schema: str, alias: str = 'production',
-                 fallback: PromptStore | None = None):
-        self.schema, self.alias = schema, alias
+                 fallback: PromptStore | None = None, ttl_s: float = 300.0,
+                 clock=time.monotonic, loader=None):
+        self.schema, self.alias, self.ttl_s, self._clock = schema, alias, ttl_s, clock
+        self._loader = loader
         self._fallback = fallback or LocalPromptStore(DEFAULT_PROMPTS)
-        self._cache: dict[str, tuple[str, str]] = {}
+        self._cache: dict[str, tuple[str, str, str | None, float]] = {}
+
+    def _load(self, uri: str):
+        if self._loader is not None:
+            return self._loader(uri)
+        import mlflow.genai
+
+        return mlflow.genai.load_prompt(uri)
+
+    def _entry(self, name: str):
+        now = self._clock()
+        hit = self._cache.get(name)
+        if hit is not None and now - hit[3] < self.ttl_s:
+            return hit
+        try:
+            loaded = self._load(f'prompts:/{self.schema}.{name}@{self.alias}')
+            entry = (loaded.template, 'registry', str(getattr(loaded, 'version', '') or '') or None,
+                     now)
+        except Exception:  # noqa: BLE001 - any registry failure must degrade, never raise
+            if hit is not None and hit[1] == 'registry':
+                entry = (hit[0], 'registry', hit[2], now)  # keep last good, retry after the TTL
+            else:
+                entry = (self._fallback.get(name), 'local', None, now)
+        self._cache[name] = entry
+        return entry
 
     def get(self, name: str) -> str:
-        if name not in self._cache:
-            try:
-                import mlflow.genai
-
-                uri = f'prompts:/{self.schema}.{name}@{self.alias}'
-                self._cache[name] = (mlflow.genai.load_prompt(uri).template, 'registry')
-            except Exception:  # noqa: BLE001 - any registry failure must degrade to local
-                self._cache[name] = (self._fallback.get(name), 'local')
-        return self._cache[name][0]
+        return self._entry(name)[0]
 
     def source(self, name: str) -> str:
-        self.get(name)
-        return self._cache[name][1]
+        return self._entry(name)[1]
+
+    def version(self, name: str) -> str | None:
+        e = self._entry(name)
+        return f'{e[1]}:{e[2]}' if e[2] else None
 
 
 class OverlayPromptStore:

@@ -14,10 +14,11 @@ from mlflow.types.responses import (
 
 from insurance_automation.agents import graph as agent_graph
 from insurance_automation.agents.approval_log import ApprovalLog, ApprovalRecord
-from insurance_automation.agents.nodes import NodeContext
+from insurance_automation.agents.nodes import ESCALATION_ANSWER, NodeContext
 
 DECIDE = re.compile(r'^\s*(approve|reject)\s+(\S+)\s*$', re.IGNORECASE)
 MAX_RESOLVED_REMEMBERED = 1000
+CLAIM_ID = re.compile(r'\bC\d{5}\b')
 EDIT = re.compile(r'^\s*edit\s+(\S+):\s*(.+?)\s*$', re.IGNORECASE | re.DOTALL)
 
 
@@ -48,8 +49,9 @@ class ClaimsResponsesAgent(ResponsesAgent):
     """
 
     def __init__(self, ctx_factory: Callable[[], NodeContext], approval_log: ApprovalLog,
-                 checkpointer=None):
+                 checkpointer=None, breaker=None):
         self.ctx_factory, self.approval_log, self.checkpointer = ctx_factory, approval_log, checkpointer
+        self.breaker = breaker
         self._graph = None
         # Pending/resolved state is per process: a replay reaching another replica answers
         # 'Unknown run id', which is the honest answer there (no shared store on Free Edition).
@@ -69,7 +71,15 @@ class ClaimsResponsesAgent(ResponsesAgent):
             self._graph = agent_graph.build_graph(self.ctx_factory(), self.checkpointer)
         return self._graph
 
+    def _safe_mode_answer(self, text: str) -> str | None:
+        if self.breaker is None or not CLAIM_ID.search(text) or self.breaker.mode() != 'safe':
+            return None
+        return (f'{ESCALATION_ANSWER}\n\nDecision: ESCALATED (safe mode: runtime circuit breaker '
+                'is open; a human must decide this claim).')
+
     def _ask(self, text: str) -> str:
+        if (escalated := self._safe_mode_answer(text)) is not None:
+            return escalated
         run_id = str(uuid.uuid4())
         res = agent_graph.invoke(self.graph, text, thread_id=run_id)
         if res.status != 'pending_approval':
@@ -102,11 +112,24 @@ class ClaimsResponsesAgent(ResponsesAgent):
             'auto_settle' if line.startswith('Decision: AUTO-SETTLED') else 'auto_deny', line,
         ))
 
+    def _durable_payload(self, run_id: str) -> dict | None:
+        """A pending approval that lives in the checkpointer but not in this process."""
+        try:
+            snap = self.graph.get_state({'configurable': {'thread_id': run_id}})
+        except Exception:  # noqa: BLE001
+            return None
+        if not snap.values or not snap.next:
+            return None
+        v = snap.values
+        return {'claim_id': v.get('claim_id'), 'required_authority': v.get('authority'),
+                'payable_amount': (v.get('coverage') or {}).get('payable_amount'),
+                'proposed_decision': ''}
+
     def _resolve(self, run_id: str, decision: str, edit_text: str = '') -> str:
         with self._lock:  # claim the run so a concurrent or replayed approval cannot also win
             if run_id in self._resolved:
                 return f'Run id {run_id} was already resolved. No action taken.'
-            payload = self._pending.pop(run_id, None)
+            payload = self._pending.pop(run_id, None) or self._durable_payload(run_id)
             if payload is None:
                 return f'Unknown run id {run_id}. No action taken.'
             self._remember_resolved(run_id)

@@ -69,3 +69,18 @@ def test_tracing_off_emits_no_spans_and_same_answer():
     ctx2, _, _, _ = make_ctx(CLAIM_RESP)
     on = invoke(build_graph(ctx2), 'Decide claim C00001', 't4')
     assert off.output.answer == on.output.answer and off.status == on.status
+
+
+def test_traced_node_records_whitelisted_io():
+    ctx, _, _, _ = make_ctx(CLAIM_RESP)
+    invoke(build_graph(ctx), 'Decide claim C00001', 't-io')
+    by_name = {s.name: s for s in _spans()}
+    assert by_name['supervisor'].inputs['question'] == 'Decide claim C00001'
+    assert by_name['supervisor'].outputs['route'] == 'claim_decision'
+    assert 'ledger' not in by_name['supervisor'].inputs
+
+
+def test_traced_node_truncates_long_strings():
+    from insurance_automation.agents.tracing import MAX_SPAN_STR, span_view
+    out = span_view({'draft': 'x' * 5000, 'secret_field': 'nope'})
+    assert len(out['draft']) == MAX_SPAN_STR and 'secret_field' not in out

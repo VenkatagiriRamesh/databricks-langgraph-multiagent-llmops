@@ -42,7 +42,7 @@ def build_graph(ctx: NodeContext, checkpointer=None, tracing: bool = True):
     g = StateGraph(ClaimsState)
 
     def add(name, fn):
-        g.add_node(name, traced_node(name, fn, ctx.ledger) if tracing else fn)
+        g.add_node(name, traced_node(name, fn, ctx.ledger, ctx.prompts) if tracing else fn)
 
     for name in ('supervisor', 'refuse', 'sql_analyst', 'policy_rag', 'coverage_checker',
                  'fraud_screener', 'risk_scorer', 'writer', 'critic', 'escalate'):

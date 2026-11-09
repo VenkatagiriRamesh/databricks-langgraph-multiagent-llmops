@@ -5,6 +5,27 @@ from langgraph.errors import GraphInterrupt
 
 _enabled = False
 
+SPAN_FIELDS = ('question', 'route', 'tools_called', 'citations', 'hit_ids', 'sql', 'sql_error',
+               'critic_verdict', 'critic_reason', 'retries', 'draft', 'approval_status',
+               'required_authority')
+MAX_SPAN_STR = 2000
+PROMPT_NODES = ('supervisor', 'sql_analyst', 'writer', 'critic')
+
+
+def _clip(value):
+    if isinstance(value, str):
+        return value[:MAX_SPAN_STR]
+    if isinstance(value, (list, tuple)):
+        return [_clip(v) for v in value][:50]
+    return value
+
+
+def span_view(mapping) -> dict:
+    """Whitelisted, truncated copy of a state/result dict for span inputs and outputs."""
+    if not isinstance(mapping, dict):
+        return {}
+    return {k: _clip(mapping[k]) for k in SPAN_FIELDS if k in mapping}
+
 
 def enable_tracing() -> None:
     global _enabled
@@ -25,7 +46,8 @@ def _tokens(ledger) -> tuple[int, int]:
     return (sum(r.tokens_in for _, r in records), sum(r.tokens_out for _, r in records))
 
 
-def traced_node(name: str, fn: Callable[[dict], dict], ledger) -> Callable[[dict], dict]:
+def traced_node(name: str, fn: Callable[[dict], dict], ledger,
+                prompts=None) -> Callable[[dict], dict]:
     """Run `fn` inside a span named `name` carrying the ledger's token delta for that node."""
 
     def wrapper(state):
@@ -34,8 +56,17 @@ def traced_node(name: str, fn: Callable[[dict], dict], ledger) -> Callable[[dict
         result = None
         with mlflow.start_span(name=name, span_type='CHAIN') as span:
             span.set_attribute('node', name)
+            span.set_inputs(span_view(state))
+            if prompts is not None and name in PROMPT_NODES:
+                try:
+                    version = getattr(prompts, 'version', None)
+                    span.set_attribute('prompt_version', (version(name) if version else None)
+                                       or prompts.source(name))
+                except Exception:  # noqa: BLE001 - metadata must never fail a node
+                    pass
             try:
                 result = fn(state)
+                span.set_outputs(span_view(result))
             except GraphInterrupt as exc:  # human-approval pause: control flow, not a failure
                 paused = exc
             finally:

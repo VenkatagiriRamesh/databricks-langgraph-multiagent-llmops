@@ -19,7 +19,8 @@ def test_pip_requirements_cover_every_third_party_import_in_src():
 
     from scripts.deploy_agent_endpoint import PIP_REQUIREMENTS
 
-    pip_name = {'sklearn': 'scikit-learn', 'databricks': 'databricks-sdk', 'langchain_core': 'langchain-core'}
+    pip_name = {'sklearn': 'scikit-learn', 'databricks': 'databricks-sdk', 'langchain_core': 'langchain-core',
+                'psycopg': 'psycopg', 'psycopg_pool': 'psycopg-pool'}
     imported = set()
     for path in pathlib.Path('src/insurance_automation').rglob('*.py'):
         for node in ast.walk(ast.parse(path.read_text())):

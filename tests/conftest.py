@@ -39,3 +39,22 @@ def fake_llm():
 @pytest.fixture
 def fake_ledger():
     return FakeLedger()
+
+
+import os as _os
+
+import pytest as _pytest
+
+
+def pytest_collection_modifyitems(config, items):
+    if _os.environ.get('PG_TEST_DSN'):
+        return
+    skip = _pytest.mark.skip(reason='PG_TEST_DSN not set')
+    for item in items:
+        if 'pg' in item.keywords:
+            item.add_marker(skip)
+
+
+@_pytest.fixture
+def pg_dsn():
+    return _os.environ['PG_TEST_DSN']

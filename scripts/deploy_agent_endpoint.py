@@ -10,7 +10,7 @@ ENTRY = 'src/insurance_automation/agents/entry.py'
 PIP_REQUIREMENTS = [
     'mlflow==3.17.2', 'langgraph==1.2.18', 'langchain-core', 'databricks-sdk[openai]>=0.40.0',
     'openai', 'databricks-agents', 'pydantic>=2', 'scikit-learn>=1.4', 'pandas>=2',
-    'numpy>=1.26',
+    'numpy>=1.26', 'psycopg[binary]>=3.1', 'psycopg-pool>=3.2', 'langgraph-checkpoint-postgres>=2.0',
 ]
 
 
@@ -84,6 +84,11 @@ def main(argv=None) -> None:
         environment_vars={
             'DATABRICKS_WAREHOUSE_ID': cfg.warehouse_id, 'UC_CATALOG': cfg.catalog,
             'FM_API_MODEL': cfg.fm_model,
+            # Opt-in: durable approvals and the circuit breaker need LAKEBASE_CONNINFO in the
+            # deployer's environment AND a Lakebase role for the endpoint's service principal,
+            # which is a security grant the owner must approve separately. Unset = old behaviour.
+            **({'LAKEBASE_CONNINFO': os.environ['LAKEBASE_CONNINFO']}
+               if os.environ.get('LAKEBASE_CONNINFO') else {}),
         },
     )
     print('Endpoint:', deployment.endpoint_name)
